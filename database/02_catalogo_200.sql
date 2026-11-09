@@ -1,4 +1,6 @@
 SET NAMES utf8mb4;
+-- NOTA: este script carga el catálogo original de 200 productos. Al arrancar, la API Spring Boot
+-- lo reduce a 30 productos de prueba (migración 003_catalogo_30_productos en MigracionesBd.java).
 USE botica_belen_db;
 INSERT IGNORE INTO categoria (idCategoria, nombreCategoria, estadoCategoria) VALUES
 (1, 'Medicamentos Generales', 'Activo'),

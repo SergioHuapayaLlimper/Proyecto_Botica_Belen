@@ -4,6 +4,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { AuthService } from '../core/auth.service';
 import { CarritoService } from '../core/carrito.service';
+import { SeguimientoService } from '../core/seguimiento.service';
 import { TIENDA } from '../core/modelos';
 import { Icono } from '../ui/icono';
 
@@ -16,6 +17,8 @@ import { Icono } from '../ui/icono';
 export class PortalShell {
   protected readonly auth = inject(AuthService);
   protected readonly carrito = inject(CarritoService);
+  // RF15: avisa al cliente cuando su reserva cambia de estado (en cualquier página del portal).
+  private readonly seguimiento = inject(SeguimientoService);
   private readonly router = inject(Router);
 
   protected readonly tienda = TIENDA;

@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS producto (
   idCategoria INT NULL,
   codigoProducto VARCHAR(20) UNIQUE NOT NULL,
   nombreProducto VARCHAR(100) NOT NULL,
+  principioActivo VARCHAR(100) NULL, -- RF05: búsqueda por principio activo
   descripcionProducto TEXT NULL,
   precioProducto DECIMAL(10,2) NOT NULL,
   stock INT NOT NULL DEFAULT 0,

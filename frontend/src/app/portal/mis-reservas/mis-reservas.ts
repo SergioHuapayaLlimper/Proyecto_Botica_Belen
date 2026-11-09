@@ -1,11 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, of, startWith } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, map, of, startWith, switchMap } from 'rxjs';
 import { API, PedidoResumen } from '../../core/modelos';
 import { formatoFecha, formatoSoles } from '../../core/formato';
 import { mensajeError } from '../../core/interceptores';
+import { SeguimientoService } from '../../core/seguimiento.service';
 import { Icono } from '../../ui/icono';
 import { Sello } from '../../ui/sello';
 
@@ -17,7 +18,7 @@ import { Sello } from '../../ui/sello';
       <header class="pagina-cabecera">
         <div>
           <h1>Mis reservas</h1>
-          <p>El estado se actualiza cuando el personal de la botica avanza tu pedido.</p>
+          <p>Esta lista se actualiza sola. Te avisamos aquí cuando tu reserva cambie de estado.</p>
         </div>
         <a routerLink="/" class="btn btn--borde"><app-icono nombre="reserva" [tam]="18" /> Nueva reserva</a>
       </header>
@@ -85,10 +86,15 @@ export class MisReservas {
   protected readonly fecha = formatoFecha;
   protected readonly soles = formatoSoles;
 
+  // RF10: se vuelve a pedir la lista cada vez que el seguimiento detecta un cambio de estado.
   protected readonly estado = toSignal(
-    this.http.get<PedidoResumen[]>(`${API}/pedidos/mios`).pipe(
-      map((lista) => ({ cargando: false, lista, error: '' })),
-      catchError((e) => of({ cargando: false, lista: [] as PedidoResumen[], error: mensajeError(e) })),
+    toObservable(inject(SeguimientoService).version).pipe(
+      switchMap(() =>
+        this.http.get<PedidoResumen[]>(`${API}/pedidos/mios`).pipe(
+          map((lista) => ({ cargando: false, lista, error: '' })),
+          catchError((e) => of({ cargando: false, lista: [] as PedidoResumen[], error: mensajeError(e) })),
+        ),
+      ),
       startWith({ cargando: true, lista: [] as PedidoResumen[], error: '' }),
     ),
     { requireSync: true },

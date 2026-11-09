@@ -29,6 +29,7 @@ export interface Producto {
   nombreCategoria: string;
   codigoProducto: string;
   nombreProducto: string;
+  principioActivo?: string | null; // RF05
   descripcionProducto: string | null;
   precioProducto: number;
   stock: number;

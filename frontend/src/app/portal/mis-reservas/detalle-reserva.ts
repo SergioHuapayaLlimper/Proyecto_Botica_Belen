@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, input, signal, untracked } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { API, Pedido } from '../../core/modelos';
 import { AvisosService } from '../../core/avisos.service';
 import { mensajeError } from '../../core/interceptores';
+import { SeguimientoService } from '../../core/seguimiento.service';
 import { Icono } from '../../ui/icono';
 import { TarjetaControl } from '../../ui/tarjeta-control';
 
@@ -61,6 +62,7 @@ import { TarjetaControl } from '../../ui/tarjeta-control';
 export class DetalleReserva implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly avisos = inject(AvisosService);
+  private readonly seguimiento = inject(SeguimientoService);
 
   readonly id = input.required<string>();
   readonly confirmada = input(false);
@@ -70,7 +72,24 @@ export class DetalleReserva implements OnInit {
   protected readonly confirmando = signal(false);
   protected readonly cancelando = signal(false);
 
+  constructor() {
+    // RF10: si el personal avanza esta reserva, la tarjeta se actualiza sin recargar la página.
+    let primera = true;
+    effect(() => {
+      this.seguimiento.version();
+      if (primera) {
+        primera = false;
+        return;
+      }
+      untracked(() => this.cargar());
+    });
+  }
+
   ngOnInit(): void {
+    this.cargar();
+  }
+
+  private cargar(): void {
     this.http.get<Pedido>(`${API}/pedidos/${this.id()}`).subscribe({
       next: (p) => this.pedido.set(p),
       error: (e) => this.error.set(mensajeError(e)),
@@ -86,6 +105,7 @@ export class DetalleReserva implements OnInit {
     this.http.post<Pedido>(`${API}/pedidos/${this.id()}/cancelar`, {}).subscribe({
       next: (p) => {
         this.pedido.set(p);
+        this.seguimiento.marcar(p.idPedido, p.estadoPedido); // fue su propia acción: no se le avisa
         this.confirmando.set(false);
         this.cancelando.set(false);
         this.avisos.ok('Reserva cancelada. Los productos volvieron al stock.');

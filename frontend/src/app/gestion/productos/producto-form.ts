@@ -13,6 +13,7 @@ import { GestionService } from '../gestion.service';
 interface Formulario {
   codigoProducto: string;
   nombreProducto: string;
+  principioActivo: string;
   idCategoria: number;
   precioProducto: number | null;
   stock: number;
@@ -45,7 +46,8 @@ interface Formulario {
 
           <div class="rejilla">
             <label class="casilla"><span class="rotulo">Código</span><input name="codigo" [(ngModel)]="f.codigoProducto" maxlength="20" placeholder="MED-0201" required /></label>
-            <label class="casilla ancho"><span class="rotulo">Nombre y presentación</span><input name="nombre" [(ngModel)]="f.nombreProducto" maxlength="100" placeholder="Paracetamol 500mg (Caja x 100 tab)" required /></label>
+            <label class="casilla ancho"><span class="rotulo">Nombre y presentación</span><input name="nombre" [(ngModel)]="f.nombreProducto" maxlength="100" placeholder="Panadol 500mg (Caja x 100 tab)" required /></label>
+            <label class="casilla ancho"><span class="rotulo">Principio activo (opcional)</span><input name="principio" [(ngModel)]="f.principioActivo" maxlength="100" placeholder="Paracetamol" /></label>
             <label class="casilla">
               <span class="rotulo">Categoría</span>
               <select name="categoria" [(ngModel)]="f.idCategoria">
@@ -118,6 +120,7 @@ export class ProductoForm implements OnInit {
   protected f: Formulario = {
     codigoProducto: '',
     nombreProducto: '',
+    principioActivo: '',
     idCategoria: 1,
     precioProducto: null,
     stock: 0,
@@ -139,6 +142,7 @@ export class ProductoForm implements OnInit {
         this.f = {
           codigoProducto: p.codigoProducto,
           nombreProducto: p.nombreProducto,
+          principioActivo: p.principioActivo ?? '',
           idCategoria: p.idCategoria,
           precioProducto: p.precioProducto,
           stock: p.stock,

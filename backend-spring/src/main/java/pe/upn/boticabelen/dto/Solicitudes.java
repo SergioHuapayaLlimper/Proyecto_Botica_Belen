@@ -27,6 +27,7 @@ public final class Solicitudes {
     public record ProductoRequest(
             String codigoProducto,
             String nombreProducto,
+            String principioActivo,
             String descripcionProducto,
             Integer idCategoria,
             BigDecimal precioProducto,

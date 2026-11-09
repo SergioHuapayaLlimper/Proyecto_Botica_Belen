@@ -18,6 +18,11 @@
           }
           En <a routerLink="/" [queryParams]="{ categoria: p.idCategoria }">{{ p.nombreCategoria }}</a>, código <span class="cifra">{{ p.codigoProducto }}</span>
         </p>
+        @if (p.principioActivo) {
+          <p class="principio">
+            Principio activo: <a routerLink="/" [queryParams]="{ q: p.principioActivo }">{{ p.principioActivo }}</a>
+          </p>
+        }
 
         <dl class="casillas">
           <div>

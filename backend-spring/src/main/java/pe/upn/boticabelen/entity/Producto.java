@@ -23,6 +23,10 @@ public class Producto {
     @Column(name = "nombreProducto", nullable = false, length = 100)
     private String nombreProducto;
 
+    /** RF05: principio activo (genérico), p. ej. "Paracetamol" para Panadol. */
+    @Column(name = "principioActivo", length = 100)
+    private String principioActivo;
+
     @Column(name = "descripcionProducto", columnDefinition = "TEXT")
     private String descripcionProducto;
 
@@ -53,6 +57,8 @@ public class Producto {
     public void setCodigoProducto(String codigoProducto) { this.codigoProducto = codigoProducto; }
     public String getNombreProducto() { return nombreProducto; }
     public void setNombreProducto(String nombreProducto) { this.nombreProducto = nombreProducto; }
+    public String getPrincipioActivo() { return principioActivo; }
+    public void setPrincipioActivo(String principioActivo) { this.principioActivo = principioActivo; }
     public String getDescripcionProducto() { return descripcionProducto; }
     public void setDescripcionProducto(String descripcionProducto) { this.descripcionProducto = descripcionProducto; }
     public BigDecimal getPrecioProducto() { return precioProducto; }

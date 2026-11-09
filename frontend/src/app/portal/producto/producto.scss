@@ -56,6 +56,12 @@
   color: var(--texto-2);
 }
 
+// RF05: enlace para ver otras marcas con el mismo principio activo.
+.principio {
+  margin-top: calc(var(--e4) * -1);
+  font-weight: 600;
+}
+
 .casillas {
   display: grid;
   grid-template-columns: 1fr 1fr;

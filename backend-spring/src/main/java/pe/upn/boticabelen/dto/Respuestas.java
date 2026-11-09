@@ -29,14 +29,15 @@ public final class Respuestas {
     public record CategoriaDto(Integer idCategoria, String nombreCategoria, String estadoCategoria) {}
 
     public record ProductoPublicoDto(Integer idProducto, Integer idCategoria, String nombreCategoria, String codigoProducto,
-                                     String nombreProducto, String descripcionProducto, BigDecimal precioProducto,
-                                     Integer stock, String imagenURL) {}
+                                     String nombreProducto, String principioActivo, String descripcionProducto,
+                                     BigDecimal precioProducto, Integer stock, String imagenURL) {}
 
     public record PaginaProductosDto(List<ProductoPublicoDto> items, long total, int pagina, int totalPaginas) {}
 
     /** Producto completo para el panel de gestión. */
     public record ProductoDto(Integer idProducto, Integer idCategoria, String nombreCategoria, String codigoProducto,
-                              String nombreProducto, String descripcionProducto, BigDecimal precioProducto, Integer stock,
+                              String nombreProducto, String principioActivo, String descripcionProducto,
+                              BigDecimal precioProducto, Integer stock,
                               String estadoProducto, Integer requiere_receta, String imagenURL, String ubicacionAnaquel) {}
 
     // ---------- Carrito y pedidos ----------

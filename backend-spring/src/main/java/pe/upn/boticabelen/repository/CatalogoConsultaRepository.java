@@ -25,7 +25,7 @@ public class CatalogoConsultaRepository {
             "precio_desc", "p.precioProducto DESC");
 
     private static final String CAMPOS = """
-            p.idProducto, p.idCategoria, c.nombreCategoria, p.codigoProducto, p.nombreProducto, p.descripcionProducto,
+            p.idProducto, p.idCategoria, c.nombreCategoria, p.codigoProducto, p.nombreProducto, p.principioActivo, p.descripcionProducto,
             p.precioProducto, p.stock, p.imagenURL""";
 
     private final SqlNativo sql;
@@ -70,7 +70,8 @@ public class CatalogoConsultaRepository {
     private String from(FiltroCatalogo f, Map<String, Object> params) {
         List<String> where = new ArrayList<>(List.of(PUBLICO));
         if (!f.q().isEmpty()) {
-            where.add("(p.nombreProducto LIKE :q OR p.codigoProducto LIKE :q OR c.nombreCategoria LIKE :q)");
+            // RF05: también por principio activo (buscar "paracetamol" encuentra Panadol).
+            where.add("(p.nombreProducto LIKE :q OR p.principioActivo LIKE :q OR p.codigoProducto LIKE :q OR c.nombreCategoria LIKE :q)");
             params.put("q", "%" + f.q() + "%");
         }
         if (f.categoria() > 0) {
@@ -120,7 +121,7 @@ public class CatalogoConsultaRepository {
 
     private static ProductoPublicoDto aProducto(Tuple t) {
         return new ProductoPublicoDto(entero(t, "idProducto"), entero(t, "idCategoria"), texto(t, "nombreCategoria"),
-                texto(t, "codigoProducto"), texto(t, "nombreProducto"), texto(t, "descripcionProducto"),
+                texto(t, "codigoProducto"), texto(t, "nombreProducto"), texto(t, "principioActivo"), texto(t, "descripcionProducto"),
                 decimal(t, "precioProducto"), entero(t, "stock"), texto(t, "imagenURL"));
     }
 }

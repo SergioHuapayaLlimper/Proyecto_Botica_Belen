@@ -21,6 +21,9 @@ import { Sello } from '../../ui/sello';
           @if (partes().presentacion) {
             <p class="presentacion">{{ partes().presentacion }}</p>
           }
+          @if (principioDistinto()) {
+            <p class="principio">{{ p().principioActivo }}</p>
+          }
           <p class="categoria">{{ p().nombreCategoria }}</p>
         </div>
       </a>
@@ -74,6 +77,13 @@ export class Ficha {
 
   protected readonly partes = computed(() => separarPresentacion(this.p().nombreProducto));
   protected readonly precio = computed(() => formatoSoles(this.p().precioProducto));
+  // RF05: en una marca (Panadol) se muestra el genérico (Paracetamol); en "Paracetamol 500mg" sería repetirlo.
+  protected readonly principioDistinto = computed(() => {
+    const principio = (this.p().principioActivo ?? '').trim().toLowerCase();
+    if (!principio) return false;
+    const primera = principio.split(' ')[0];
+    return !this.p().nombreProducto.toLowerCase().includes(primera);
+  });
   protected readonly monto = computed(() => Number(this.p().precioProducto).toFixed(2));
   protected readonly enReserva = computed(() => this.carrito.cantidadDe(this.p().idProducto));
   protected readonly sellado = computed(() => this.carrito.ultimoSeparado()?.idProducto === this.p().idProducto);

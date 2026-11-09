@@ -35,7 +35,7 @@ public class ProductoConsultaRepository {
         List<String> where = new ArrayList<>(List.of("1 = 1"));
         Map<String, Object> params = new HashMap<>();
         if (!f.q().isEmpty()) {
-            where.add("(p.nombreProducto LIKE :q OR p.codigoProducto LIKE :q OR c.nombreCategoria LIKE :q)");
+            where.add("(p.nombreProducto LIKE :q OR p.principioActivo LIKE :q OR p.codigoProducto LIKE :q OR c.nombreCategoria LIKE :q)");
             params.put("q", "%" + f.q() + "%");
         }
         if (f.categoria() > 0) {
@@ -56,7 +56,7 @@ public class ProductoConsultaRepository {
 
     private static ProductoDto aProducto(Tuple t) {
         return new ProductoDto(entero(t, "idProducto"), entero(t, "idCategoria"), texto(t, "nombreCategoria"),
-                texto(t, "codigoProducto"), texto(t, "nombreProducto"), texto(t, "descripcionProducto"),
+                texto(t, "codigoProducto"), texto(t, "nombreProducto"), texto(t, "principioActivo"), texto(t, "descripcionProducto"),
                 decimal(t, "precioProducto"), entero(t, "stock"), texto(t, "estadoProducto"),
                 bandera(t, "requiere_receta"), texto(t, "imagenURL"), texto(t, "ubicacionAnaquel"));
     }

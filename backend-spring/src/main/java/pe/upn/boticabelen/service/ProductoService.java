@@ -41,7 +41,7 @@ public class ProductoService {
     public static ProductoDto aDto(Producto p) {
         Categoria c = p.getCategoria();
         return new ProductoDto(p.getIdProducto(), c == null ? null : c.getIdCategoria(), c == null ? null : c.getNombreCategoria(),
-                p.getCodigoProducto(), p.getNombreProducto(), p.getDescripcionProducto(), p.getPrecioProducto(), p.getStock(),
+                p.getCodigoProducto(), p.getNombreProducto(), p.getPrincipioActivo(), p.getDescripcionProducto(), p.getPrecioProducto(), p.getStock(),
                 p.getEstadoProducto(), Boolean.TRUE.equals(p.getRequiereReceta()) ? 1 : 0, p.getImagenURL(), p.getUbicacionAnaquel());
     }
 
@@ -112,6 +112,7 @@ public class ProductoService {
 
         p.setCodigoProducto(codigo);
         p.setNombreProducto(Validador.texto(req.nombreProducto(), "Nombre", 3, 100));
+        p.setPrincipioActivo(Validador.opcional(req.principioActivo(), "Principio activo", 100));
         p.setDescripcionProducto(Validador.opcional(req.descripcionProducto(), "Descripción", 2000));
         p.setCategoria(categoria);
         p.setPrecioProducto(precio.setScale(2, RoundingMode.HALF_UP));
