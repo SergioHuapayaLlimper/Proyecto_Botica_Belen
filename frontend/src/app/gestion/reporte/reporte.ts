@@ -46,7 +46,7 @@ import { GestionService } from '../gestion.service';
           <select name="producto" [(ngModel)]="producto">
             <option value="">Todos</option>
             @for (p of productos(); track p.idProducto) {
-              <option [value]="p.idProducto">{{ p.codigoProducto }} · {{ partes(p.nombreProducto).nombre }}</option>
+              <option [value]="p.idProducto">{{ partes(p.nombreProducto).nombre }} ({{ p.codigoProducto }})</option>
             }
           </select>
         </label>
@@ -62,8 +62,8 @@ import { GestionService } from '../gestion.service';
           <header class="cabeza-impresa">
             <img src="img/logo-botica-belen-192.png" alt="" width="44" height="44" />
             <div>
-              <h2>Botica Belén · Reporte de ventas</h2>
-              <p class="cifra">Del {{ fechaCorta(d.desde) }} al {{ fechaCorta(d.hasta) }}{{ estado ? ' · ' + estado : '' }}</p>
+              <h2>Botica Belén: reporte de ventas</h2>
+              <p class="cifra">Del {{ fechaCorta(d.desde) }} al {{ fechaCorta(d.hasta) }}{{ estado ? ', solo pedidos «' + estado + '»' : '' }}</p>
             </div>
           </header>
 

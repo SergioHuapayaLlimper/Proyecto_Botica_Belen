@@ -45,85 +45,104 @@
   align-items: stretch;
 }
 
-// ---- Libreta de cifras ----
-.libreta {
+// ---- Balance del periodo ----
+.balance {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin: 0 0 var(--e4);
-  transition: opacity 200ms var(--sale);
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  margin-bottom: var(--e5);
+  overflow: hidden;
+  transition: opacity 160ms var(--sale);
 
   &.atenuada {
     opacity: 0.55;
   }
+}
 
-  > div {
-    display: grid;
-    gap: 2px;
-    align-content: start;
-    padding: var(--e4) var(--e5);
+.balance-total {
+  display: grid;
+  gap: var(--e2);
+  align-content: start;
+  padding: var(--e6);
+}
 
-    & + div {
-      border-left: 1px solid var(--rayado);
-    }
+// La única cifra grande del panel: condensada, como el total de una boleta.
+.monto-grande {
+  font-size: clamp(3rem, 2rem + 3vw, 4.5rem);
+  font-weight: 800;
+  font-stretch: 62%;
+  line-height: 0.95;
+  color: var(--tinta);
+}
+
+.nota {
+  max-width: 46ch;
+  color: var(--texto-2);
+}
+
+.datos-menores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2) var(--e6);
+  margin: var(--e3) 0 0;
+
+  div {
+    display: flex;
+    gap: var(--e2);
+    align-items: baseline;
+  }
+
+  dt {
+    color: var(--texto-2);
   }
 
   dd {
     margin: 0;
-  }
-
-  .grande {
-    margin-top: var(--e1);
-    font-size: 1.75rem;
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    color: var(--tinta);
-  }
-
-  .nota {
-    font-size: var(--t-chico);
-    color: var(--texto-2);
+    font-weight: 750;
   }
 }
 
-.alertas {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--e3);
-  margin-bottom: var(--e5);
-}
+.por-atender {
+  padding: var(--e5) var(--e5) var(--e4);
+  background: var(--velo);
+  border-left: 1px solid var(--rayado);
 
-.alerta {
-  display: flex;
-  gap: var(--e3);
-  align-items: center;
-  min-height: 56px;
-  padding: 0 var(--e4);
-  font-size: var(--t-chico);
-  color: #663a00;
-  text-decoration: none;
-  background: #fff7e8;
-  border: 1px solid #f0d6a4;
-  border-radius: var(--radio);
-  transition: border-color 160ms var(--sale);
-
-  strong {
-    font-size: var(--t-medio);
+  ul {
+    display: grid;
+    padding: 0;
+    margin: var(--e2) 0 0;
+    list-style: none;
   }
 
-  &:hover {
-    color: #663a00;
-    border-color: var(--aviso);
+  li + li {
+    border-top: 1px solid var(--rayado);
   }
 
-  &.calma {
-    color: var(--texto-2);
-    background: var(--papel);
-    border-color: var(--rayado);
+  a {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    gap: var(--e3);
+    align-items: center;
+    min-height: 56px;
+    color: var(--texto);
+    text-decoration: none;
 
-    &:hover {
-      color: var(--tinta);
-      border-color: var(--tinta);
+    strong {
+      font-size: 1.75rem;
+      font-weight: 800;
+      font-stretch: var(--angosta);
+      color: var(--rojo);
+    }
+
+    app-icono {
+      color: var(--texto-2);
+    }
+
+    &:hover span {
+      text-decoration: underline;
+    }
+
+    &.calma strong {
+      color: var(--texto-2);
     }
   }
 }
@@ -149,7 +168,7 @@
     margin-bottom: var(--e5);
 
     h2 {
-      font-size: var(--t-cuerpo);
+      font-size: var(--t-medio);
     }
   }
 
@@ -246,38 +265,22 @@
   text-align: center;
 }
 
-@media (max-width: 1100px) {
-  .libreta {
-    grid-template-columns: repeat(2, 1fr);
-
-    > div:nth-child(3) {
-      border-left: 0;
-    }
-
-    > div:nth-child(n + 3) {
-      border-top: 1px solid var(--rayado);
-    }
-  }
-}
-
 @media (max-width: 820px) {
   .rejilla,
-  .alertas {
+  .balance {
     grid-template-columns: 1fr;
+  }
+
+  .por-atender {
+    border-top: 1px solid var(--rayado);
+    border-left: 0;
+  }
+
+  .balance-total {
+    padding: var(--e5);
   }
 
   .segmentos {
     flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .libreta {
-    grid-template-columns: 1fr;
-
-    > div + div {
-      border-top: 1px solid var(--rayado);
-      border-left: 0;
-    }
   }
 }

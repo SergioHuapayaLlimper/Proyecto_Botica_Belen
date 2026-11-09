@@ -52,7 +52,7 @@
               }
             ],
             "styles": [
-              "node_modules/@fontsource-variable/public-sans/index.css",
+              "node_modules/@fontsource-variable/archivo/wdth.css",
               "src/styles.scss"
             ]
           },

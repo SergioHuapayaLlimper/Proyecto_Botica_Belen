@@ -122,6 +122,7 @@ export interface Empleado {
   rol: 'Admin' | 'Empleado';
   estado: number;
   intentos_fallidos: number;
+  bloqueado_hasta?: string | null; // RF02: bloqueo temporal vigente ('AAAA-MM-DD HH:MM:SS')
 }
 
 export interface Dashboard {
@@ -155,7 +156,7 @@ export interface Reporte {
 // Datos de la tienda. EJEMPLO: reemplazar por los datos reales de la botica.
 export const TIENDA = {
   direccion: 'Jr. Dos de Mayo 245, San Vicente de Cañete',
-  horario: 'Lunes a sábado de 8:00 a. m. a 10:00 p. m. · Domingos de 8:00 a. m. a 1:00 p. m.',
+  horario: 'Lunes a sábado de 8:00 a. m. a 10:00 p. m. Domingos de 8:00 a. m. a 1:00 p. m.',
   telefono: '(01) 581-2245',
   whatsapp: '987 654 321',
   yape: '987 654 321',

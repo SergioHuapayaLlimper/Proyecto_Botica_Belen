@@ -26,44 +26,48 @@
   }
 
   @if (datos(); as d) {
-    <!-- Libreta de cifras: una sola hoja con casillas, no tarjetas sueltas -->
-    <dl class="hoja libreta" [class.atenuada]="cargando()">
-      <div>
-        <dt class="rotulo">Ventas</dt>
-        <dd class="cifra grande">{{ soles(d.kpis.ventas) }}</dd>
-        <dd class="nota cifra">{{ d.kpis.pedidosValidos }} {{ d.kpis.pedidosValidos === 1 ? 'pedido válido' : 'pedidos válidos' }}</dd>
+    <!-- Balance del periodo: una cifra protagonista y, al lado, lo que está por atender -->
+    <section class="hoja balance" [class.atenuada]="cargando()" aria-label="Balance del periodo">
+      <div class="balance-total">
+        <h2 class="rotulo">Vendido en el periodo</h2>
+        <p class="monto-grande cifra">{{ soles(d.kpis.ventas) }}</p>
+        <p class="nota cifra">
+          {{ d.kpis.pedidosValidos }} de {{ d.kpis.pedidos }} reservas se cobraron o siguen vigentes.
+          Ticket promedio de {{ soles(d.kpis.ticketPromedio) }}.
+        </p>
+        <dl class="datos-menores">
+          <div><dt>Anuladas</dt><dd class="cifra">{{ anulados() }}</dd></div>
+          <div><dt>Clientes registrados</dt><dd class="cifra">{{ d.kpis.clientes }}</dd></div>
+        </dl>
       </div>
-      <div>
-        <dt class="rotulo">Ticket promedio</dt>
-        <dd class="cifra grande">{{ soles(d.kpis.ticketPromedio) }}</dd>
-        <dd class="nota cifra">{{ d.kpis.pedidos }} reservas en total</dd>
-      </div>
-      <div>
-        <dt class="rotulo">Anulados</dt>
-        <dd class="cifra grande">{{ anulados() }}</dd>
-        <dd class="nota">cancelados o rechazados</dd>
-      </div>
-      <div>
-        <dt class="rotulo">Clientes registrados</dt>
-        <dd class="cifra grande">{{ d.kpis.clientes }}</dd>
-        <dd class="nota">en toda la historia</dd>
-      </div>
-    </dl>
 
-    <div class="alertas">
-      <a routerLink="/gestion/mostrador" class="alerta" [class.calma]="!d.kpis.pendientes">
-        <app-icono nombre="campana" [tam]="20" />
-        <span><strong class="cifra">{{ d.kpis.pendientes }}</strong> reservas esperando atención</span>
-      </a>
-      <a routerLink="/gestion/productos" [queryParams]="{ stock: 'agotado' }" class="alerta" [class.calma]="!d.kpis.agotados">
-        <app-icono nombre="caja" [tam]="20" />
-        <span><strong class="cifra">{{ d.kpis.agotados }}</strong> productos agotados</span>
-      </a>
-      <a routerLink="/gestion/productos" [queryParams]="{ stock: 'bajo' }" class="alerta" [class.calma]="!d.kpis.stockBajo">
-        <app-icono nombre="alerta" [tam]="20" />
-        <span><strong class="cifra">{{ d.kpis.stockBajo }}</strong> con stock bajo (1 a 5)</span>
-      </a>
-    </div>
+      <div class="por-atender">
+        <h2 class="rotulo">Por atender ahora</h2>
+        <ul>
+          <li>
+            <a routerLink="/gestion/mostrador" [class.calma]="!d.kpis.pendientes">
+              <strong class="cifra">{{ d.kpis.pendientes }}</strong>
+              <span>{{ d.kpis.pendientes === 1 ? 'reserva espera' : 'reservas esperan' }} en el mostrador</span>
+              <app-icono nombre="derecha" [tam]="18" />
+            </a>
+          </li>
+          <li>
+            <a routerLink="/gestion/productos" [queryParams]="{ stock: 'agotado' }" [class.calma]="!d.kpis.agotados">
+              <strong class="cifra">{{ d.kpis.agotados }}</strong>
+              <span>{{ d.kpis.agotados === 1 ? 'producto agotado' : 'productos agotados' }}</span>
+              <app-icono nombre="derecha" [tam]="18" />
+            </a>
+          </li>
+          <li>
+            <a routerLink="/gestion/productos" [queryParams]="{ stock: 'bajo' }" [class.calma]="!d.kpis.stockBajo">
+              <strong class="cifra">{{ d.kpis.stockBajo }}</strong>
+              <span>con 5 unidades o menos</span>
+              <app-icono nombre="derecha" [tam]="18" />
+            </a>
+          </li>
+        </ul>
+      </div>
+    </section>
 
     <div class="rejilla">
       <section class="hoja bloque ancho">

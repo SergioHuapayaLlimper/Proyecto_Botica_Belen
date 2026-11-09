@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { EstadoPedido } from '../core/modelos';
 import { claseEstado } from '../core/formato';
 
-// Sello de tinta: doble filete, versalitas espaciadas. Es la "firma" visual del sistema.
+// Estado (chip sobrio). La variante grande es el sello de goma "Separado".
 // Con [cae]="true" entra con el movimiento de presión de tinta.
 @Component({
   selector: 'app-sello',
@@ -13,12 +13,11 @@ import { claseEstado } from '../core/formato';
     .sello {
       --c: var(--st-pendiente);
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 3px 11px 3px; min-height: 26px;
-      font-size: 0.8125rem; font-weight: 750; line-height: 1.1; letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 2px 10px; min-height: 26px;
+      font-size: 0.875rem; font-weight: 650; line-height: 1.1;
       white-space: nowrap; color: var(--c);
-      border: 1.5px solid var(--c); border-radius: 999px;
-      box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 3px color-mix(in srgb, var(--c) 45%, transparent);
-      background: color-mix(in srgb, var(--c) 6%, #fff);
+      border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); border-radius: 999px;
+      background: color-mix(in srgb, var(--c) 8%, #fff);
     }
     .sello--pendiente { --c: var(--st-pendiente); }
     .sello--aceptado { --c: var(--st-aceptado); }
@@ -31,7 +30,9 @@ import { claseEstado } from '../core/formato';
     .sello--agotado { --c: #6b7385; }
     .sello--grande {
       --giro: -3deg;
-      padding: 8px 18px; font-size: 1rem; letter-spacing: 0.12em; border-width: 2.5px;
+      /* Solo el sello grande es un sello de goma de verdad: mayúsculas y doble filete. */
+      padding: 8px 18px; font-size: 1rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+      border: 2.5px solid var(--c); background: #fff;
       box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 4.5px color-mix(in srgb, var(--c) 55%, transparent);
       transform: rotate(var(--giro));
     }

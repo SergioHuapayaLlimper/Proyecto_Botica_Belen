@@ -149,13 +149,13 @@ tr.recien td {
   }
 }
 
+// Rótulo de estante: como el cartelito pegado al anaquel.
 .estante {
   padding: var(--e3) var(--e5) var(--e2);
-  font-size: var(--t-rotulo);
-  font-weight: 700;
-  color: var(--azul);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: var(--t-cuerpo);
+  font-weight: 800;
+  font-stretch: var(--angosta);
+  color: var(--tinta);
 }
 
 .recoger {

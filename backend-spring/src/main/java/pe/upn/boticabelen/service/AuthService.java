@@ -1,5 +1,7 @@
 package pe.upn.boticabelen.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.upn.boticabelen.dto.Respuestas.SesionDto;
@@ -17,6 +19,7 @@ import pe.upn.boticabelen.util.Validador;
 public class AuthService {
 
     private static final int MAX_INTENTOS = 5;
+    private static final int MINUTOS_BLOQUEO = 5;
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordService passwordService;
@@ -37,8 +40,11 @@ public class AuthService {
     }
 
     /**
-     * Mismas reglas que la versión PHP: la cuenta se bloquea tras 5 intentos fallidos.
-     * noRollbackFor: el contador de intentos se guarda aunque se responda con error.
+     * RF02: tras 5 intentos fallidos consecutivos la cuenta se bloquea TEMPORALMENTE (5 minutos).
+     * - Bloqueada: 423 Locked con "segundosRestantes" (el login muestra una cuenta regresiva).
+     * - Clave incorrecta: 401 con "intentosRestantes".
+     * - Al vencer el plazo se desbloquea sola y el contador vuelve a cero.
+     * noRollbackFor: el contador y el bloqueo se guardan aunque se responda con error.
      */
     @Transactional(noRollbackFor = ApiException.class)
     public SesionDto login(LoginRequest req) {
@@ -49,7 +55,16 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByEmail(correo)
                 .orElseThrow(() -> ApiException.unauthorized("Credenciales incorrectas."));
         if (usuario.getEstado() == 0) {
-            throw ApiException.forbidden("Su cuenta está inactiva o bloqueada. Contacte al administrador.");
+            throw ApiException.forbidden("Su cuenta está desactivada. Contacte al administrador.");
+        }
+
+        LocalDateTime ahora = LocalDateTime.now();
+        if (usuario.bloqueadoAhora()) {
+            throw bloqueo(segundosRestantes(ahora, usuario.getBloqueadoHasta()));
+        }
+        if (usuario.getBloqueadoHasta() != null) { // el bloqueo ya venció: se libera la cuenta
+            usuario.setBloqueadoHasta(null);
+            usuario.setIntentosFallidos(0);
         }
 
         if (passwordService.coincide(clave, usuario.getPasswordHash())) {
@@ -60,11 +75,33 @@ public class AuthService {
         int intentos = usuario.getIntentosFallidos() + 1;
         usuario.setIntentosFallidos(intentos);
         if (intentos >= MAX_INTENTOS) {
-            usuario.setEstado(0);
-            throw ApiException.forbidden("Cuenta bloqueada por múltiples intentos fallidos. Contacte al administrador.");
+            usuario.setBloqueadoHasta(ahora.plusMinutes(MINUTOS_BLOQUEO));
+            throw bloqueo(MINUTOS_BLOQUEO * 60L);
         }
         int quedan = MAX_INTENTOS - intentos;
-        throw ApiException.unauthorized("Credenciales incorrectas. Le " + (quedan == 1 ? "queda 1 intento" : "quedan " + quedan + " intentos") + ".");
+        throw ApiException.unauthorized("Credenciales incorrectas. " + (quedan == 1
+                        ? "Le queda 1 intento antes del bloqueo."
+                        : "Le quedan " + quedan + " intentos."))
+                .con("intentosRestantes", quedan);
+    }
+
+    private static long segundosRestantes(LocalDateTime ahora, LocalDateTime hasta) {
+        return Math.max(1, Duration.between(ahora, hasta).toMillis() / 1000 + 1); // redondeo hacia arriba
+    }
+
+    private static ApiException bloqueo(long segundos) {
+        return ApiException.locked("Cuenta bloqueada por superar los " + MAX_INTENTOS
+                        + " intentos permitidos. Inténtelo en " + formatearTiempo(segundos) + ".")
+                .con("segundosRestantes", segundos)
+                .con("bloqueado", true);
+    }
+
+    /** 200 -> "3 min 20 s" */
+    private static String formatearTiempo(long segundos) {
+        long min = segundos / 60;
+        long seg = segundos % 60;
+        if (min == 0) return seg + " s";
+        return seg == 0 ? min + " min" : min + " min " + seg + " s";
     }
 
     @Transactional

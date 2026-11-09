@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS usuario (
   carrito_json TEXT NULL,
   estado INT NOT NULL DEFAULT 1,
   intentos_fallidos INT NOT NULL DEFAULT 0,
+  bloqueado_hasta DATETIME NULL, -- RF02: bloqueo temporal tras 5 intentos fallidos
   PRIMARY KEY (idUsuario)
 );
 

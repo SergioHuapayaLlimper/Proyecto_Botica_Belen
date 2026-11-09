@@ -18,33 +18,26 @@ import { Sello } from '../../ui/sello';
         <app-pictograma [categoria]="p().idCategoria" [imagen]="p().imagenURL" [alt]="p().nombreProducto" [tamIcono]="24" [style.view-transition-name]="'producto-' + p().idProducto" />
         <div class="nombre">
           <h3>{{ partes().nombre }}</h3>
-          <p class="presentacion">
-            @if (partes().presentacion) {
-              {{ partes().presentacion }} ·
-            }
-            {{ p().nombreCategoria }}
-          </p>
+          @if (partes().presentacion) {
+            <p class="presentacion">{{ partes().presentacion }}</p>
+          }
+          <p class="categoria">{{ p().nombreCategoria }}</p>
         </div>
       </a>
 
-      <dl class="casillas">
-        <div>
-          <dt class="rotulo">Precio</dt>
-          <dd class="precio cifra">{{ precio() }}</dd>
-        </div>
-        <div>
-          <dt class="rotulo">Disponibilidad</dt>
-          <dd>
-            @if (p().stock === 0) {
-              <app-sello variante="agotado" etiqueta="Agotado" />
-            } @else if (p().stock <= 5) {
-              <app-sello variante="pendiente" [etiqueta]="'Quedan ' + p().stock" />
-            } @else {
-              <app-sello variante="listo" etiqueta="Disponible" />
-            }
-          </dd>
-        </div>
-      </dl>
+      <!-- El borde del anaquel: etiqueta amarilla de precio y la disponibilidad al lado -->
+      <div class="anaquel">
+        <p class="etiqueta-precio precio" [attr.aria-label]="'Precio: ' + precio()"><small>S/</small>{{ monto() }}</p>
+        <p class="stock" [class.stock--bajo]="p().stock > 0 && p().stock <= 5" [class.stock--agotado]="p().stock === 0">
+          @if (p().stock === 0) {
+            Agotado
+          } @else if (p().stock <= 5) {
+            Quedan {{ p().stock }}
+          } @else {
+            Disponible
+          }
+        </p>
+      </div>
 
       <div class="accion">
         @if (enReserva() > 0) {
@@ -81,6 +74,7 @@ export class Ficha {
 
   protected readonly partes = computed(() => separarPresentacion(this.p().nombreProducto));
   protected readonly precio = computed(() => formatoSoles(this.p().precioProducto));
+  protected readonly monto = computed(() => Number(this.p().precioProducto).toFixed(2));
   protected readonly enReserva = computed(() => this.carrito.cantidadDe(this.p().idProducto));
   protected readonly sellado = computed(() => this.carrito.ultimoSeparado()?.idProducto === this.p().idProducto);
 }

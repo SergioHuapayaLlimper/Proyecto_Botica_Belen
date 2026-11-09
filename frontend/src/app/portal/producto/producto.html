@@ -14,9 +14,9 @@
         <h1>{{ partes().nombre }}</h1>
         <p class="sub">
           @if (partes().presentacion) {
-            {{ partes().presentacion }} ·
+            {{ partes().presentacion }}.
           }
-          <a routerLink="/" [queryParams]="{ categoria: p.idCategoria }">{{ p.nombreCategoria }}</a> · Código <span class="cifra">{{ p.codigoProducto }}</span>
+          En <a routerLink="/" [queryParams]="{ categoria: p.idCategoria }">{{ p.nombreCategoria }}</a>, código <span class="cifra">{{ p.codigoProducto }}</span>
         </p>
 
         <dl class="casillas">
@@ -52,7 +52,7 @@
           </div>
           @if (enReserva() > 0) {
             <p class="en-reserva">
-              <app-icono nombre="check" [tam]="18" /> Tienes {{ enReserva() }} en tu reserva · <a routerLink="/reserva">Ver tu reserva</a>
+              <app-icono nombre="check" [tam]="18" /> Tienes {{ enReserva() }} en tu reserva. <a routerLink="/reserva">Ver tu reserva</a>
             </p>
           }
         }

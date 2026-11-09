@@ -1,6 +1,7 @@
 package pe.upn.boticabelen.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 /** Tabla usuario: administradores, empleados y clientes. */
 @Entity
@@ -38,6 +39,10 @@ public class Usuario {
     @Column(name = "intentos_fallidos", nullable = false)
     private Integer intentosFallidos = 0;
 
+    /** RF02: hasta cuándo está bloqueada la cuenta por intentos fallidos (null = no bloqueada). */
+    @Column(name = "bloqueado_hasta")
+    private LocalDateTime bloqueadoHasta;
+
     public Integer getIdUsuario() { return idUsuario; }
     public void setIdUsuario(Integer idUsuario) { this.idUsuario = idUsuario; }
     public String getNombre() { return nombre; }
@@ -56,6 +61,14 @@ public class Usuario {
     public void setEstado(Integer estado) { this.estado = estado; }
     public Integer getIntentosFallidos() { return intentosFallidos; }
     public void setIntentosFallidos(Integer intentosFallidos) { this.intentosFallidos = intentosFallidos; }
+
+    public LocalDateTime getBloqueadoHasta() { return bloqueadoHasta; }
+    public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) { this.bloqueadoHasta = bloqueadoHasta; }
+
+    /** Bloqueo temporal vigente en este momento. */
+    public boolean bloqueadoAhora() {
+        return bloqueadoHasta != null && bloqueadoHasta.isAfter(LocalDateTime.now());
+    }
 
     public boolean activo() { return estado != null && estado == 1; }
 }

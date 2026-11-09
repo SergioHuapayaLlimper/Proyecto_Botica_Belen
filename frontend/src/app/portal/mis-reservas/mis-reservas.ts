@@ -44,7 +44,7 @@ import { Sello } from '../../ui/sello';
                 </span>
                 <span class="detalle">
                   <app-icono nombre="tienda" [tam]="18" />
-                  {{ r.unidades }} {{ r.unidades === 1 ? 'unidad' : 'unidades' }} · {{ r.metodoPago }}
+                  {{ r.unidades }} {{ r.unidades === 1 ? 'unidad' : 'unidades' }}, pago con {{ r.metodoPago }}
                 </span>
                 <strong class="monto cifra">{{ soles(r.total) }}</strong>
                 <app-sello [estado]="r.estadoPedido" />

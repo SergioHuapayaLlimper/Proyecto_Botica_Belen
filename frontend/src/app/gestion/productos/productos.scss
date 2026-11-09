@@ -156,11 +156,9 @@
 
       &::before {
         content: 'Stock';
-        font-size: var(--t-rotulo);
-        font-weight: 650;
-        color: var(--azul);
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
+        font-size: var(--t-chico);
+        font-weight: 600;
+        color: var(--texto-2);
       }
     }
 

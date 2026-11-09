@@ -1,17 +1,12 @@
 <a class="saltar" href="#contenido">Saltar al contenido</a>
 
 <header class="banda" [class.banda--portada]="enPortada()">
-  <div class="luz" aria-hidden="true"></div>
-  <svg class="emblema" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
-    <path d="M78 18h44v60h60v44h-60v60H78v-60H18V78h60z" fill="none" stroke="currentColor" stroke-width="1.5" />
-    <path d="M100 46l9.5 35.5L145 72l-28 22 28 22-35.5-9.5L100 142l-9.5-35.5L55 116l28-22-28-22 35.5 9.5z" fill="none" stroke="currentColor" stroke-width="1.5" />
-  </svg>
   <div class="contenedor fila">
     <a routerLink="/" class="marca" aria-label="Botica Belén, ir al catálogo">
       <img src="img/logo-botica-belen-192.png" alt="" width="52" height="52" />
       <span class="marca-texto">
         <strong>Botica Belén</strong>
-        <small>Farmacia y Cuidado Personal</small>
+        <small>Farmacia y cuidado personal</small>
       </span>
     </a>
 
@@ -46,7 +41,7 @@
 
   @if (enPortada()) {
     <div class="contenedor lema">
-      <p class="lema-titulo">Te lo separamos.<br /><span>Tú solo pasas a recoger.</span></p>
+      <p class="lema-titulo">Sepáralo aquí, recógelo en el mostrador.</p>
     </div>
   }
 
@@ -74,13 +69,14 @@
   </form>
 </header>
 
-<div class="franja">
-  <div class="contenedor franja-filas">
-    <p><app-icono nombre="reserva" [tam]="18" /> Reserva en línea y <strong>recoge en tienda</strong></p>
-    <p><app-icono nombre="efectivo" [tam]="18" /> Pagas al recoger: efectivo, Yape, Plin o tarjeta</p>
-    <p class="solo-amplio"><app-icono nombre="reloj" [tam]="18" /> Lun–Sáb 8:00 a. m. – 10:00 p. m.</p>
-  </div>
-</div>
+@if (enPortada()) {
+  <!-- Cómo funciona: es una secuencia real, por eso va numerada -->
+  <ol class="contenedor pasos" aria-label="Cómo funciona">
+    <li><span class="paso-n">1</span><p><strong>Separa</strong> lo que necesitas. El stock que ves es el real.</p></li>
+    <li><span class="paso-n">2</span><p><strong>Lo preparamos</strong> en el anaquel mientras vienes.</p></li>
+    <li><span class="paso-n">3</span><p><strong>Paga al recoger</strong> con efectivo, Yape, Plin o tarjeta.</p></li>
+  </ol>
+}
 
 <main id="contenido" tabindex="-1">
   <router-outlet />
@@ -96,19 +92,19 @@
       </div>
     </div>
     <div>
-      <h2 class="rotulo">Visítanos</h2>
+      <h2 class="pie-titulo">Visítanos</h2>
       <p><app-icono nombre="ubicacion" [tam]="18" /> {{ tienda.direccion }}</p>
       <p><app-icono nombre="reloj" [tam]="18" /> {{ tienda.horario }}</p>
     </div>
     <div>
-      <h2 class="rotulo">Contacto</h2>
+      <h2 class="pie-titulo">Contacto</h2>
       <p><app-icono nombre="telefono" [tam]="18" /> {{ tienda.telefono }}</p>
       <p><app-icono nombre="celular" [tam]="18" /> WhatsApp {{ tienda.whatsapp }}</p>
     </div>
   </div>
   <div class="contenedor pie-legal">
-    <p>© {{ anio }} Botica Belén · Los medicamentos con receta se venden en tienda.</p>
-    <p>Proyecto académico · Soluciones Web y Aplicaciones Distribuidas · UNDC</p>
+    <p>© {{ anio }} Botica Belén. Todos los derechos reservados.</p>
+    <p>Los medicamentos con receta se venden en tienda.</p>
   </div>
 </footer>
 

@@ -1,6 +1,8 @@
 package pe.upn.boticabelen.excepcion;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,8 +23,11 @@ public class ManejadorErrores {
     private static final Logger log = LoggerFactory.getLogger(ManejadorErrores.class);
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<MensajeDto> api(ApiException e) {
-        return ResponseEntity.status(e.getStatus()).body(new MensajeDto(e.getMessage()));
+    public ResponseEntity<Map<String, Object>> api(ApiException e) {
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
+        cuerpo.put("message", e.getMessage());
+        cuerpo.putAll(e.getDatos());
+        return ResponseEntity.status(e.getStatus()).body(cuerpo);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

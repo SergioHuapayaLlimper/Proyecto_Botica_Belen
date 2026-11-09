@@ -21,7 +21,7 @@ export const interceptorAuth: HttpInterceptorFn = (req, next) => {
 // Mensaje legible para el usuario a partir de un error HTTP.
 export function mensajeError(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
-    if (error.status === 0) return 'No hay conexión con el servidor. Revisa que la API esté encendida (npm run dev en la carpeta backend).';
+    if (error.status === 0) return 'No hay conexión con el servidor. Revisa que la API esté encendida e inténtalo de nuevo.';
     return (error.error as { message?: string } | null)?.message ?? 'Ocurrió un error inesperado. Inténtalo de nuevo.';
   }
   return 'Ocurrió un error inesperado. Inténtalo de nuevo.';

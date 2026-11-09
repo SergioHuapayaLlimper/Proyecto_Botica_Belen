@@ -82,9 +82,9 @@
                 <td>
                   <strong>{{ partes(p.nombreProducto).nombre }}</strong>
                   <span class="sub">
-                    {{ partes(p.nombreProducto).presentacion }}{{ partes(p.nombreProducto).presentacion ? ' · ' : '' }}{{ p.nombreCategoria }}
+                    {{ partes(p.nombreProducto).presentacion }}{{ partes(p.nombreProducto).presentacion ? ', ' : '' }}{{ p.nombreCategoria }}
                     @if (p.requiere_receta) {
-                      · <span class="receta"><app-icono nombre="receta" [tam]="14" /> Con receta</span>
+                      <span class="receta"><app-icono nombre="receta" [tam]="14" /> Con receta</span>
                     }
                   </span>
                 </td>

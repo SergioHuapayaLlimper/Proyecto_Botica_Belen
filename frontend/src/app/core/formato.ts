@@ -36,7 +36,7 @@ export function haceCuanto(valor: string): string {
 export function separarPresentacion(nombre: string): { nombre: string; presentacion: string | null } {
   const partes = [...new Set([...nombre.matchAll(/\(([^)]+)\)/g)].map((m) => m[1].trim()))];
   const base = nombre.replace(/\s*\([^)]*\)/g, '').trim();
-  return { nombre: base || nombre, presentacion: partes.length ? partes.join(' · ') : null };
+  return { nombre: base || nombre, presentacion: partes.length ? partes.join(', ') : null };
 }
 
 // ---- Estados de pedido: etiqueta corta, clase del sello y orden en la tarjeta de control ----

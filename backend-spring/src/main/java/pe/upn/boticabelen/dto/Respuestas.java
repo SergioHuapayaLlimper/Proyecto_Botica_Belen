@@ -21,7 +21,7 @@ public final class Respuestas {
     public record SesionDto(String token, UsuarioDto usuario) {}
 
     public record EmpleadoDto(Integer idUsuario, String nombre, String telefono, String email, String rol,
-                              Integer estado, Integer intentos_fallidos) {}
+                              Integer estado, Integer intentos_fallidos, String bloqueado_hasta) {}
 
     // ---------- Catálogo ----------
     public record CategoriaPublicaDto(Integer idCategoria, String nombreCategoria, Long productos) {}

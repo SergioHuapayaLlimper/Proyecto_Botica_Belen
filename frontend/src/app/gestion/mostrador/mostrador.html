@@ -2,7 +2,7 @@
   <header class="pagina-cabecera">
     <div>
       <h1>Mostrador</h1>
-      <p class="primera-mayuscula">{{ hoy }} · se actualiza solo cada 15 segundos</p>
+      <p class="primera-mayuscula">{{ hoy }}. Se actualiza solo cada 15 segundos.</p>
     </div>
     <button type="button" class="btn btn--borde" (click)="cargar()"><app-icono nombre="refrescar" [tam]="18" /> Actualizar</button>
   </header>
@@ -117,9 +117,9 @@
                         {{ partes(l.nombreProducto).nombre }}
                         <small>
                           @if (partes(l.nombreProducto).presentacion; as pres) {
-                            {{ pres }} ·
+                            {{ pres }},
                           }
-                          {{ l.codigoPedido }} · {{ l.nombreCliente }}
+                          pedido {{ l.codigoPedido }} de {{ l.nombreCliente }}
                         </small>
                       </span>
                     </label>
@@ -150,7 +150,7 @@
             <li>
               <div class="curso-datos">
                 <a [routerLink]="['/gestion/pedidos', p.idPedido]" class="codigo cifra">{{ p.codigoPedido }}</a>
-                <span class="sub">{{ p.nombreCliente }} · {{ p.unidades }} unid. · {{ soles(p.total) }} · {{ p.metodoPago }}</span>
+                <span class="sub">{{ p.nombreCliente }}: {{ p.unidades }} unid., {{ soles(p.total) }} con {{ p.metodoPago }}</span>
               </div>
               <app-sello [estado]="p.estadoPedido" />
               @if (puedeActuar() && siguiente(p); as sig) {

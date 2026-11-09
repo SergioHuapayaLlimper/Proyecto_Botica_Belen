@@ -1,7 +1,8 @@
 // =============================================================================
-// Botica Belén — sistema visual "Libreta de control"
-// Tinta azul marino que manda en cabecera y riel, papel de libreta, casillas
-// rotuladas y sellos de estado. Public Sans (fuente de formularios oficiales).
+// Botica Belén — sistema visual "Mostrador y anaquel"
+// Azul tinta y rojo cruz (los del logo), papel blanco y el amarillo de las
+// etiquetas de precio. Una sola familia, Archivo (Omnibus-Type, Argentina):
+// el ancho es la voz — condensada para letreros y precios, normal para leer.
 // =============================================================================
 
 :root {
@@ -12,10 +13,12 @@
   --azul: #1f6cb0;
   --rojo: #d92534;
   --rojo-osc: #b51d2a;
+  --etiqueta: #ffd84d; // amarillo de etiqueta de anaquel: SOLO precios
+  --etiqueta-borde: #e3b70f;
 
   // Papel y rayado de formulario
   --papel: #ffffff;
-  --fondo: #eff2f6;
+  --fondo: #eef1f5;
   --velo: #eef3f9;
   --rayado: #d3dbe7;
   --rayado-fuerte: #b5c2d6;
@@ -37,8 +40,10 @@
   --aviso: #9a5700;
   --error: #b51d2a;
 
-  // Tipografía (escala corta: el rango lo dan peso, caja e inversión)
-  --fuente: 'Public Sans Variable', 'Public Sans', system-ui, sans-serif;
+  // Tipografía: el rango lo dan el ancho (font-stretch) y el peso
+  --fuente: 'Archivo Variable', 'Archivo', system-ui, sans-serif;
+  --angosta: 72%; // letreros: títulos, marca, precios
+  --media: 88%; // subtítulos y rótulos de tabla
   --t-rotulo: 0.8125rem;
   --t-chico: 0.875rem;
   --t-base: 1rem;
@@ -56,7 +61,10 @@
   --e6: 32px;
   --e7: 48px;
   --e8: 64px;
+  // Radios con jerarquía: contenedores grandes, controles medianos, etiquetas casi rectas
   --radio: 6px;
+  --radio-hoja: 10px;
+  --radio-etiqueta: 3px;
   --sombra-flota: 0 18px 40px -18px rgb(14 41 84 / 0.38), 0 2px 6px rgb(14 41 84 / 0.08);
   --sombra-suave: 0 1px 2px rgb(14 41 84 / 0.06), 0 4px 14px -6px rgb(14 41 84 / 0.12);
   --sale: cubic-bezier(0.16, 1, 0.3, 1);
@@ -109,9 +117,17 @@ h3,
 h4 {
   margin: 0;
   font-weight: 750;
-  line-height: 1.2;
-  letter-spacing: -0.015em;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
   text-wrap: balance;
+}
+
+// Títulos de página y sección: condensados, como un letrero de botica.
+h1,
+h2 {
+  font-stretch: var(--angosta);
+  font-weight: 800;
+  letter-spacing: 0;
 }
 
 p {
@@ -152,6 +168,27 @@ textarea {
   font-variant-numeric: tabular-nums;
 }
 
+// ---- Etiqueta de precio de anaquel: el único lugar donde vive el amarillo ----
+.etiqueta-precio {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 4px 10px 3px;
+  font-stretch: var(--angosta);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  background: var(--etiqueta);
+  border-radius: var(--radio-etiqueta);
+
+  small {
+    font-size: 0.55em;
+    font-weight: 700;
+  }
+}
+
 .visualmente-oculto {
   position: absolute !important;
   width: 1px;
@@ -164,15 +201,13 @@ textarea {
   border: 0;
 }
 
-// ---- Rótulo de casilla (versalitas espaciadas, como en los formularios impresos) ----
+// ---- Rótulo de casilla o de grupo: texto normal, sin mayúsculas forzadas ----
 .rotulo {
   display: block;
-  font-size: var(--t-rotulo);
-  font-weight: 650;
+  font-size: var(--t-chico);
+  font-weight: 600;
   line-height: 1.3;
-  color: var(--azul);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  color: var(--texto-2);
 }
 
 // ---- Botones ----
@@ -400,7 +435,7 @@ textarea {
 .hoja {
   background: var(--papel);
   border: 1px solid var(--rayado);
-  border-radius: var(--radio);
+  border-radius: var(--radio-hoja);
 }
 
 // ---- Tabla de libreta ----
@@ -412,14 +447,13 @@ textarea {
 
   th {
     padding: var(--e2) var(--e3);
-    font-size: var(--t-rotulo);
-    font-weight: 650;
-    color: var(--azul);
+    font-size: var(--t-chico);
+    font-weight: 700;
+    font-stretch: var(--media);
+    color: var(--texto-2);
     text-align: left;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
     white-space: nowrap;
-    border-bottom: 1px solid var(--rayado-fuerte);
+    border-bottom: 2px solid var(--tinta);
   }
 
   td {
@@ -465,12 +499,12 @@ textarea {
   margin-bottom: var(--e5);
 
   h1 {
-    font-size: var(--t-titulo);
-    letter-spacing: -0.025em;
+    font-size: 2.5rem;
+    line-height: 1;
   }
 
   p {
-    margin-top: var(--e1);
+    margin-top: var(--e2);
     color: var(--texto-2);
   }
 }

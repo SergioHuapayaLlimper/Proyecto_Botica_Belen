@@ -35,8 +35,7 @@
               <div class="info">
                 <a [routerLink]="['/producto', item.idProducto]" class="nombre">{{ partes(item.nombreProducto).nombre }}</a>
                 <span class="pres">
-                  {{ partes(item.nombreProducto).presentacion ?? '' }}
-                  {{ partes(item.nombreProducto).presentacion ? '·' : '' }} {{ soles(item.precioProducto) }} c/u
+                  {{ partes(item.nombreProducto).presentacion ? partes(item.nombreProducto).presentacion + ', ' : '' }}{{ soles(item.precioProducto) }} c/u
                 </span>
                 @if (item.stock === 0) {
                   <span class="problema">Se agotó: quítalo para continuar</span>
@@ -71,7 +70,7 @@
           <div class="recojo-tienda">
             <app-icono nombre="tienda" [tam]="22" />
             <span>
-              <strong>Recojo en tienda · sin costo</strong>
+              <strong>Recojo en tienda, sin costo</strong>
               <small>{{ tienda.direccion }}</small>
               <small>{{ tienda.horario }}</small>
             </span>

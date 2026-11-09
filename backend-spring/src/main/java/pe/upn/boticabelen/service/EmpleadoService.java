@@ -1,5 +1,6 @@
 package pe.upn.boticabelen.service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import pe.upn.boticabelen.util.Validador;
 @Service
 public class EmpleadoService {
 
+    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordService passwordService;
 
@@ -27,7 +30,9 @@ public class EmpleadoService {
     }
 
     private static EmpleadoDto aDto(Usuario u) {
-        return new EmpleadoDto(u.getIdUsuario(), u.getNombre(), u.getTelefono(), u.getEmail(), u.getRol(), u.getEstado(), u.getIntentosFallidos());
+        String bloqueo = u.bloqueadoAhora() ? u.getBloqueadoHasta().format(FECHA) : null;
+        return new EmpleadoDto(u.getIdUsuario(), u.getNombre(), u.getTelefono(), u.getEmail(), u.getRol(), u.getEstado(),
+                u.getIntentosFallidos(), bloqueo);
     }
 
     private static String rol(String rol) {
@@ -74,7 +79,10 @@ public class EmpleadoService {
         u.setTelefono(telefono);
         u.setRol(rol);
         u.setEstado(estado);
-        if (estado == 1) u.setIntentosFallidos(0); // reactivar también desbloquea la cuenta
+        if (estado == 1) { // guardar una cuenta activa también la desbloquea (RF02)
+            u.setIntentosFallidos(0);
+            u.setBloqueadoHasta(null);
+        }
         if (req.password() != null && !req.password().isEmpty()) u.setPasswordHash(passwordService.hash(Validador.password(req.password())));
         return aDto(u);
     }

@@ -24,7 +24,7 @@
 
 <div class="contenedor catalogo">
   <aside class="riel" aria-label="Filtros del catálogo">
-    <h2 class="rotulo">Categorías</h2>
+    <h2 class="riel-titulo">Categorías</h2>
     <ul class="lista-categorias">
       <li>
         <a routerLink="/" [queryParams]="{ q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }" [class.activo]="!categoria()" [attr.aria-current]="!categoria() ? 'page' : null">
@@ -63,10 +63,9 @@
             {{ d.total }} {{ d.total === 1 ? 'producto' : 'productos' }}
             @if (q() && nombreCategoria()) {
               en {{ nombreCategoria() }}
-            }
-            · precios con IGV incluido
+            }. Precios con IGV incluido.
           } @else {
-            Precios con IGV incluido
+            Precios con IGV incluido.
           }
         </p>
       </div>

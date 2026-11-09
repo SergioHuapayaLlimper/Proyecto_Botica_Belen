@@ -48,70 +48,22 @@ main {
   }
 }
 
-// La luz de la estrella de Belén: dos focos (azul y rojo) que se desplazan muy despacio.
-.luz {
-  position: absolute;
-  inset: -40% -10%;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38% 46% at 18% 30%, rgb(31 108 176 / 0.55), transparent 70%),
-    radial-gradient(30% 38% at 82% 70%, rgb(217 37 52 / 0.32), transparent 70%);
-  filter: blur(8px);
-  animation: deriva 22s ease-in-out infinite alternate;
-}
-
-@keyframes deriva {
-  from {
-    transform: translate3d(-3%, -2%, 0) scale(1);
-  }
-
-  to {
-    transform: translate3d(4%, 3%, 0) scale(1.08);
-  }
-}
-
-// Emblema de cruz y estrella (del logo), apenas visible detrás del lema.
-.emblema {
-  position: absolute;
-  top: 50%;
-  right: max(2vw, calc((100vw - 1240px) / 2 - 60px));
-  z-index: -1;
-  width: 420px;
-  height: 420px;
-  color: rgb(255 255 255 / 0.07);
-  transform: translateY(-38%) rotate(-8deg);
-  pointer-events: none;
-}
-
 .banda--portada {
   padding-bottom: var(--e6);
 }
 
 .lema {
-  display: grid;
-  gap: var(--e3);
-  max-width: min(1240px, 100% - 32px);
-  margin-top: var(--e5);
-  animation: lema-entra 700ms var(--sale) both;
+  margin-top: var(--e6);
 }
 
+// El letrero de la tienda: muy condensado y grande, en una sola tinta.
 .lema-titulo {
-  font-size: clamp(2rem, 1.1rem + 3.3vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.02;
-  letter-spacing: -0.035em;
-
-  span {
-    color: #b9cdea;
-  }
-}
-
-@keyframes lema-entra {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
+  max-width: 16ch;
+  font-size: clamp(2.5rem, 1.2rem + 4.6vw, 4.75rem);
+  font-weight: 850;
+  font-stretch: 62%;
+  line-height: 0.92;
+  letter-spacing: 0;
 }
 
 .fila {
@@ -133,7 +85,6 @@ main {
     width: 52px;
     height: 52px;
     flex-shrink: 0;
-    filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.25));
   }
 
   &:hover {
@@ -146,18 +97,15 @@ main {
   line-height: 1.15;
 
   strong {
-    font-size: 1.375rem;
+    font-size: 1.5rem;
     font-weight: 800;
-    letter-spacing: -0.02em;
+    font-stretch: var(--angosta);
   }
 
   small {
-    font-size: var(--t-rotulo);
-    font-weight: 600;
+    font-size: var(--t-chico);
     white-space: nowrap;
     color: var(--texto-claro);
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
   }
 }
 
@@ -201,12 +149,11 @@ main {
   text-decoration: none;
   background: #fff;
   border-radius: var(--radio);
-  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.5);
-  transition: transform 160ms var(--sale);
+  transition: background-color 160ms var(--sale);
 
   &:hover {
     color: var(--tinta);
-    transform: translateY(-1px);
+    background: #e8eef8;
   }
 }
 
@@ -303,29 +250,42 @@ main {
   }
 }
 
-// ---- Franja: cómo funciona, en una línea ----
-.franja {
-  font-size: var(--t-chico);
-  color: var(--texto);
-  background: var(--papel);
-  border-bottom: 1px solid var(--rayado);
-}
+// ---- Cómo funciona (solo en portada): tres pasos sobre el papel ----
+.pasos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e5);
+  padding: var(--e5) 0 0;
+  margin-block: 0;
+  list-style: none;
 
-.franja-filas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e2) var(--e6);
-  padding-block: var(--e3);
+  li {
+    display: flex;
+    gap: var(--e3);
+    align-items: flex-start;
+  }
 
   p {
-    display: inline-flex;
-    gap: var(--e2);
-    align-items: center;
-  }
+    max-width: 30ch;
+    color: var(--texto-2);
 
-  app-icono {
-    color: var(--rojo);
+    strong {
+      color: var(--texto);
+    }
   }
+}
+
+.paso-n {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  font-weight: 800;
+  font-stretch: var(--angosta);
+  color: #fff;
+  background: var(--rojo);
+  border-radius: 50%;
 }
 
 // ---- Pie ----
@@ -335,9 +295,10 @@ main {
   background: var(--tinta);
   font-size: var(--t-chico);
 
-  .rotulo {
+  .pie-titulo {
     margin-bottom: var(--e3);
-    color: #9fbbe0;
+    font-size: var(--t-medio);
+    color: #fff;
   }
 
   p {
@@ -369,7 +330,9 @@ main {
   strong {
     display: block;
     margin-bottom: var(--e1);
-    font-size: var(--t-medio);
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-stretch: var(--angosta);
     color: #fff;
   }
 
@@ -449,14 +412,12 @@ main {
   }
 
   .lema {
-    gap: var(--e2);
     margin-top: var(--e4);
   }
 
-  .emblema {
-    width: 260px;
-    height: 260px;
-    right: -60px;
+  .pasos {
+    grid-template-columns: 1fr;
+    gap: var(--e3);
   }
 
   .marca img {
@@ -489,10 +450,6 @@ main {
     }
   }
 
-  .franja-filas {
-    gap: var(--e1);
-    font-size: 0.8125rem;
-  }
 }
 
 // En teléfonos muy angostos el emblema del logo ya dice "Botica Belén".

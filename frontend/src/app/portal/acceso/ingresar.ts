@@ -1,4 +1,5 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
@@ -32,27 +33,28 @@ import { Icono } from '../../ui/icono';
             </span>
           </label>
 
-          @if (error()) {
+          @if (bloqueado()) {
+            <div class="aviso aviso--error bloqueo" role="alert">
+              <app-icono nombre="candado" [tam]="20" />
+              <p>
+                Cuenta bloqueada por superar los 5 intentos permitidos.
+                Podrás intentarlo de nuevo en <strong class="cifra">{{ reloj(restante()) }}</strong>.
+              </p>
+            </div>
+          } @else if (error()) {
             <div class="aviso aviso--error" role="alert"><app-icono nombre="alerta" [tam]="20" /><p>{{ error() }}</p></div>
           }
 
-          <button class="btn btn--grande btn--bloque btn--tinta enviar" [disabled]="enviando()">
-            {{ enviando() ? 'Ingresando…' : 'Ingresar' }}
+          <button class="btn btn--grande btn--bloque btn--tinta enviar" [disabled]="enviando() || bloqueado()">
+            @if (bloqueado()) {
+              <app-icono nombre="candado" [tam]="18" /> Bloqueado ({{ reloj(restante()) }})
+            } @else {
+              {{ enviando() ? 'Ingresando…' : 'Ingresar' }}
+            }
           </button>
         </form>
 
         <p class="cambio">¿No tienes cuenta? <a routerLink="/registro" [queryParams]="{ volver: volver() ?? null }">Crea una aquí</a></p>
-
-        <div class="prueba">
-          <p>Cuentas de prueba del proyecto (contraseña <strong>admin123</strong>):</p>
-          <ul>
-            @for (c of demos; track c.email) {
-              <li>
-                <button type="button" (click)="usar(c.email)"><strong>{{ c.rol }}</strong> <span>{{ c.email }}</span></button>
-              </li>
-            }
-          </ul>
-        </div>
       </section>
     </div>
   `,
@@ -71,19 +73,68 @@ export class Ingresar {
   protected readonly enviando = signal(false);
   protected readonly error = signal('');
 
-  protected readonly demos = [
-    { rol: 'Cliente', email: 'juan.perez@gmail.com' },
-    { rol: 'Empleado', email: 'empleado1@botica.com' },
-    { rol: 'Admin', email: 'admin@botica.com' },
-  ];
+  // ---- RF02: bloqueo temporal con cuenta regresiva ----
+  // Se recuerda en el navegador para que el contador siga aunque se recargue la página.
+  private static readonly CLAVE_BLOQUEO = 'botica.bloqueoLogin';
+  protected readonly restante = signal(0); // segundos que faltan
+  private bloqueoEmail = '';
+  private bloqueoFin = 0;
+  private temporizador: ReturnType<typeof setInterval> | undefined;
 
-  protected usar(email: string): void {
-    this.email = email;
-    this.password = 'admin123';
-    this.ingresar();
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearInterval(this.temporizador));
+    try {
+      const guardado = JSON.parse(localStorage.getItem(Ingresar.CLAVE_BLOQUEO) ?? 'null') as { email: string; fin: number } | null;
+      if (guardado && guardado.fin > Date.now()) {
+        this.email = guardado.email;
+        this.iniciarBloqueo(guardado.email, Math.ceil((guardado.fin - Date.now()) / 1000));
+      }
+    } catch {
+      /* sin almacenamiento disponible: el servidor igual mantiene el bloqueo */
+    }
+  }
+
+  /** El bloqueo es de UNA cuenta: si se escribe otro correo, se puede intentar. */
+  protected bloqueado(): boolean {
+    return this.restante() > 0 && this.email.trim().toLowerCase() === this.bloqueoEmail;
+  }
+
+  /** 299 -> "4:59" */
+  protected reloj(segundos: number): string {
+    return `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;
+  }
+
+  private iniciarBloqueo(email: string, segundos: number): void {
+    clearInterval(this.temporizador);
+    this.bloqueoEmail = email.trim().toLowerCase();
+    this.bloqueoFin = Date.now() + segundos * 1000;
+    try {
+      localStorage.setItem(Ingresar.CLAVE_BLOQUEO, JSON.stringify({ email: this.bloqueoEmail, fin: this.bloqueoFin }));
+    } catch {
+      /* opcional */
+    }
+    const actualizar = () => {
+      const quedan = Math.max(0, Math.ceil((this.bloqueoFin - Date.now()) / 1000));
+      this.restante.set(quedan);
+      if (quedan === 0) this.terminarBloqueo();
+    };
+    actualizar();
+    this.temporizador = setInterval(actualizar, 1000);
+  }
+
+  private terminarBloqueo(): void {
+    clearInterval(this.temporizador);
+    this.restante.set(0);
+    this.error.set('');
+    try {
+      localStorage.removeItem(Ingresar.CLAVE_BLOQUEO);
+    } catch {
+      /* opcional */
+    }
   }
 
   protected ingresar(): void {
+    if (this.bloqueado()) return;
     if (!this.email.trim() || !this.password) {
       this.error.set('Escribe tu correo y tu contraseña.');
       return;
@@ -97,6 +148,12 @@ export class Ingresar {
       },
       error: (e) => {
         this.enviando.set(false);
+        const segundos = e instanceof HttpErrorResponse && e.status === 423 ? Number(e.error?.segundosRestantes) : 0;
+        if (segundos > 0) {
+          this.password = '';
+          this.iniciarBloqueo(this.email, segundos);
+          return;
+        }
         this.error.set(mensajeError(e));
       },
     });

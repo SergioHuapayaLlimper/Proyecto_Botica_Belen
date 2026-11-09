@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Empleado } from '../../core/modelos';
+import { aFecha } from '../../core/formato';
 import { AuthService } from '../../core/auth.service';
 import { AvisosService } from '../../core/avisos.service';
 import { mensajeError } from '../../core/interceptores';
@@ -45,11 +46,13 @@ const vacia = (): Ficha => ({ nombre: '', email: '', telefono: '', rol: 'Emplead
                 <span class="inicial" aria-hidden="true">{{ e.nombre.charAt(0) }}</span>
                 <span class="datos">
                   <strong>{{ e.nombre }} @if (e.idUsuario === auth.usuario()?.idUsuario) {<small class="tu">tú</small>}</strong>
-                  <small class="cifra">{{ e.email }}{{ e.telefono ? ' · ' + e.telefono : '' }}</small>
+                  <small class="cifra">{{ e.email }}{{ e.telefono ? ', tel. ' + e.telefono : '' }}</small>
                 </span>
                 <app-sello [variante]="e.rol === 'Admin' ? 'tinta' : 'aceptado'" [etiqueta]="e.rol === 'Admin' ? 'Administrador' : 'Empleado'" />
                 @if (!e.estado) {
-                  <app-sello variante="cancelado" [etiqueta]="e.intentos_fallidos >= 5 ? 'Bloqueado' : 'Inactivo'" />
+                  <app-sello variante="cancelado" etiqueta="Inactivo" />
+                } @else if (e.bloqueado_hasta) {
+                  <app-sello variante="pendiente" [etiqueta]="'Bloqueado hasta las ' + horaBloqueo(e.bloqueado_hasta)" />
                 }
                 <span class="acciones">
                   <button type="button" class="btn btn--chico btn--texto" (click)="editar(e)"><app-icono nombre="editar" [tam]="16" /> Editar</button>
@@ -133,6 +136,11 @@ export class Personal {
   protected readonly eliminarId = signal<number | null>(null);
   protected readonly guardando = signal(false);
   protected readonly errorForm = signal('');
+
+  // RF02: "14:35" a partir de 'AAAA-MM-DD HH:MM:SS'.
+  protected horaBloqueo(valor: string): string {
+    return aFecha(valor).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+  }
   protected f: Ficha = vacia();
 
   constructor() {

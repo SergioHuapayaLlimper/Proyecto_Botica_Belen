@@ -72,7 +72,7 @@ export class Resumen {
   protected readonly pagos = computed<Barra[]>(() => {
     const lista = this.datos()?.metodosPago ?? [];
     const total = lista.reduce((s, m) => s + m.total, 0) || 1;
-    return lista.map((m) => ({ etiqueta: m.metodo, valor: m.total, texto: `${m.total} · ${Math.round((m.total / total) * 100)} %`, color: 'var(--azul)' }));
+    return lista.map((m) => ({ etiqueta: m.metodo, valor: m.total, texto: `${m.total} (${Math.round((m.total / total) * 100)} %)`, color: 'var(--azul)' }));
   });
 
   protected readonly anulados = computed(() =>
