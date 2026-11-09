@@ -5,6 +5,8 @@ import { EstadoPedido, Pedido } from '../../core/modelos';
 import { AuthService } from '../../core/auth.service';
 import { AvisosService } from '../../core/avisos.service';
 import { ACCION_ESTADO } from '../../core/formato';
+import { NegocioService } from '../../core/negocio.service';
+import { reservaPdf } from '../../core/exportar';
 import { mensajeError } from '../../core/interceptores';
 import { Icono } from '../../ui/icono';
 import { TarjetaControl } from '../../ui/tarjeta-control';
@@ -15,7 +17,12 @@ import { GestionService } from '../gestion.service';
   imports: [FormsModule, RouterLink, Icono, TarjetaControl],
   template: `
     <div class="pagina">
-      <a routerLink="/gestion/pedidos" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Pedidos</a>
+      <div class="arriba">
+        <a routerLink="/gestion/pedidos" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Pedidos</a>
+        @if (pedido(); as p) {
+          <button type="button" class="btn btn--borde btn--chico" (click)="descargarPdf(p)"><app-icono nombre="documento" [tam]="16" /> Constancia PDF</button>
+        }
+      </div>
 
       @if (pedido(); as p) {
         <div class="disposicion">
@@ -71,6 +78,7 @@ import { GestionService } from '../gestion.service';
     </div>
   `,
   styles: `
+    .arriba { display: flex; flex-wrap: wrap; gap: var(--e3); align-items: center; justify-content: space-between; }
     .disposicion { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--e5); align-items: start; }
     .panel { position: sticky; top: var(--e4); display: grid; gap: var(--e4); padding: var(--e5); }
     .panel h2 { font-size: var(--t-medio); }
@@ -86,6 +94,11 @@ export class PedidoGestion implements OnInit {
   private readonly gestion = inject(GestionService);
   private readonly avisos = inject(AvisosService);
   private readonly auth = inject(AuthService);
+  private readonly negocio = inject(NegocioService);
+
+  protected descargarPdf(p: Pedido): void {
+    reservaPdf(p, this.negocio.datos()).catch(() => this.avisos.error('No se pudo generar el PDF. Inténtalo de nuevo.'));
+  }
 
   readonly id = input.required<string>();
   protected readonly pedido = signal<Pedido | null>(null);

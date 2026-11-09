@@ -7,7 +7,10 @@ export const routes: Routes = [
     path: '',
     component: PortalShell,
     children: [
-      { path: '', title: 'Catálogo – Botica Belén', loadComponent: () => import('./portal/catalogo/catalogo').then((m) => m.Catalogo) },
+      // Al abrir la web se muestra el inicio de sesión; si ya hay sesión, el guardia lleva a su inicio.
+      { path: '', pathMatch: 'full', redirectTo: 'ingresar' },
+      { path: 'productos', title: 'Productos – Botica Belén', loadComponent: () => import('./portal/catalogo/catalogo').then((m) => m.Catalogo) },
+      { path: 'contacto', title: 'Contacto – Botica Belén', loadComponent: () => import('./portal/contacto/contacto').then((m) => m.Contacto) },
       { path: 'producto/:id', title: 'Producto – Botica Belén', loadComponent: () => import('./portal/producto/producto').then((m) => m.Producto) },
       { path: 'reserva', title: 'Tu reserva – Botica Belén', loadComponent: () => import('./portal/reserva/reserva').then((m) => m.Reserva) },
       {
@@ -61,6 +64,7 @@ export const routes: Routes = [
         canActivate: [conPermiso('productos_editar')],
         loadComponent: () => import('./gestion/productos/producto-form').then((m) => m.ProductoForm),
       },
+      { path: 'negocio', title: 'Información del negocio – Gestión Botica Belén', canActivate: [conPermiso('configuracion')], loadComponent: () => import('./gestion/negocio/negocio').then((m) => m.Negocio) },
       { path: 'categorias', title: 'Categorías – Gestión Botica Belén', canActivate: [conPermiso('categorias')], loadComponent: () => import('./gestion/categorias/categorias').then((m) => m.Categorias) },
       { path: 'resumen', title: 'Resumen – Gestión Botica Belén', canActivate: [conPermiso('resumen')], loadComponent: () => import('./gestion/resumen/resumen').then((m) => m.Resumen) },
       { path: 'reporte', title: 'Reporte de ventas – Gestión Botica Belén', canActivate: [conPermiso('reporte')], loadComponent: () => import('./gestion/reporte/reporte').then((m) => m.Reporte) },
@@ -68,5 +72,5 @@ export const routes: Routes = [
       { path: 'roles', title: 'Roles – Gestión Botica Belén', canActivate: [conPermiso('personal')], loadComponent: () => import('./gestion/roles/roles').then((m) => m.Roles) },
     ],
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: 'productos' },
 ];

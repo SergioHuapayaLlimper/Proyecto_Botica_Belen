@@ -1,5 +1,5 @@
 <div class="pagina">
-  <a routerLink="/" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Volver al catálogo</a>
+  <a routerLink="/productos" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Volver al catálogo</a>
 
   @if (estado().p; as p) {
     <article class="producto hoja">
@@ -16,11 +16,11 @@
           @if (partes().presentacion) {
             {{ partes().presentacion }}.
           }
-          En <a routerLink="/" [queryParams]="{ categoria: p.idCategoria }">{{ p.nombreCategoria }}</a>, código <span class="cifra">{{ p.codigoProducto }}</span>
+          En <a routerLink="/productos" [queryParams]="{ categoria: p.idCategoria }">{{ p.nombreCategoria }}</a>, código <span class="cifra">{{ p.codigoProducto }}</span>
         </p>
         @if (p.principioActivo) {
           <p class="principio">
-            Principio activo: <a routerLink="/" [queryParams]="{ q: p.principioActivo }">{{ p.principioActivo }}</a>
+            Principio activo: <a routerLink="/productos" [queryParams]="{ q: p.principioActivo }">{{ p.principioActivo }}</a>
           </p>
         }
 
@@ -81,7 +81,7 @@
       <app-icono nombre="receta" [tam]="48" [trazo]="1.25" />
       <h3>{{ estado().error }}</h3>
       <p>Algunos medicamentos requieren receta médica y solo se venden en tienda.</p>
-      <a routerLink="/" class="btn btn--tinta">Ir al catálogo</a>
+      <a routerLink="/productos" class="btn btn--tinta">Ir al catálogo</a>
     </div>
   } @else {
     <div class="hoja cargando" aria-busy="true">Cargando producto…</div>

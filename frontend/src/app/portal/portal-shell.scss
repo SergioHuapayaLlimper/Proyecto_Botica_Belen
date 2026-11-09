@@ -109,6 +109,38 @@ main {
   }
 }
 
+// ---- Pestañas Productos / Contacto ----
+.pestanas {
+  display: flex;
+  gap: var(--e1);
+  align-self: stretch;
+  margin-right: auto;
+  margin-left: var(--e5);
+
+  a {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--e3);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #c9d5ea;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition:
+      color 160ms var(--sale),
+      border-color 160ms var(--sale);
+
+    &:hover {
+      color: #fff;
+    }
+
+    &.activa {
+      color: #fff;
+      border-bottom-color: var(--rojo);
+    }
+  }
+}
+
 .acciones {
   display: flex;
   gap: var(--e1);
@@ -373,6 +405,22 @@ main {
 }
 
 @media (max-width: 720px) {
+  .fila {
+    flex-wrap: wrap;
+  }
+
+  .pestanas {
+    order: 3;
+    width: 100%;
+    margin: var(--e2) 0 0;
+
+    a {
+      flex: 1;
+      justify-content: center;
+      min-height: 40px;
+    }
+  }
+
   // En el celular cada acción de la cabecera lleva su palabra debajo del ícono.
   .solo-angosto {
     display: block;
@@ -457,4 +505,8 @@ main {
   .marca-texto {
     display: none;
   }
+}
+
+.pie-enlace {
+  color: #fff;
 }

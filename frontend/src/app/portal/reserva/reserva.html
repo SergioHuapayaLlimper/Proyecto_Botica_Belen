@@ -1,5 +1,5 @@
 <div class="pagina">
-  <a routerLink="/" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Seguir viendo el catálogo</a>
+  <a routerLink="/productos" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Seguir viendo el catálogo</a>
   <header class="pagina-cabecera">
     <div>
       <h1>Tu reserva</h1>
@@ -19,7 +19,7 @@
       <app-icono nombre="reserva" [tam]="52" [trazo]="1.25" />
       <h3>Aún no separaste ningún producto</h3>
       <p>Busca lo que necesitas en el catálogo y pulsa «Separar».</p>
-      <a routerLink="/" class="btn btn--tinta">Ir al catálogo</a>
+      <a routerLink="/productos" class="btn btn--tinta">Ir al catálogo</a>
     </div>
   } @else {
     <div class="disposicion">
@@ -71,8 +71,8 @@
             <app-icono nombre="tienda" [tam]="22" />
             <span>
               <strong>Recojo en tienda, sin costo</strong>
-              <small>{{ tienda.direccion }}</small>
-              <small>{{ tienda.horario }}</small>
+              <small>{{ negocio.datos().direccion }}</small>
+              <small>{{ negocio.datos().horario_atencion }}</small>
             </span>
           </div>
         </section>
@@ -80,7 +80,7 @@
         <fieldset>
           <legend class="rotulo">¿Cómo pagas?</legend>
           <div class="opciones">
-            @for (m of metodos; track m.valor) {
+            @for (m of metodos(); track m.valor) {
               <label class="opcion" [class.elegida]="metodo() === m.valor">
                 <input type="radio" name="metodo" [value]="m.valor" [checked]="metodo() === m.valor" (change)="metodo.set(m.valor)" />
                 <app-icono [nombre]="m.icono" [tam]="22" />

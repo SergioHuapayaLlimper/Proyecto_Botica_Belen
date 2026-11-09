@@ -23,6 +23,7 @@ public final class Permisos {
     public static final String CATEGORIAS = "categorias";
     public static final String REPORTE = "reporte";
     public static final String PERSONAL = "personal";
+    public static final String CONFIGURACION = "configuracion";
 
     public static final List<Permiso> CATALOGO = List.of(
             new Permiso(RESUMEN, "Resumen de ventas", "Ver las ventas del periodo, los gráficos y lo que hay por atender."),
@@ -33,7 +34,8 @@ public final class Permisos {
             new Permiso(PRODUCTOS_EDITAR, "Editar productos", "Crear y editar productos, cambiar precios y ajustar el stock."),
             new Permiso(CATEGORIAS, "Categorías", "Crear, editar y desactivar las categorías y su prefijo de código."),
             new Permiso(REPORTE, "Reporte de ventas", "Ver y exportar el reporte de ventas."),
-            new Permiso(PERSONAL, "Personal y roles", "Crear cuentas del personal y administrar los roles."));
+            new Permiso(PERSONAL, "Personal y roles", "Crear cuentas del personal y administrar los roles."),
+            new Permiso(CONFIGURACION, "Información del negocio", "Editar dirección, ubicación en el mapa, horario y datos de contacto."));
 
     public static final List<String> CLAVES = CATALOGO.stream().map(Permiso::clave).toList();
 

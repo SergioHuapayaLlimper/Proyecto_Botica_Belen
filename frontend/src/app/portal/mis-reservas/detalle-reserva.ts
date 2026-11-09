@@ -5,6 +5,8 @@ import { API, Pedido } from '../../core/modelos';
 import { AvisosService } from '../../core/avisos.service';
 import { mensajeError } from '../../core/interceptores';
 import { SeguimientoService } from '../../core/seguimiento.service';
+import { NegocioService } from '../../core/negocio.service';
+import { reservaPdf } from '../../core/exportar';
 import { Icono } from '../../ui/icono';
 import { TarjetaControl } from '../../ui/tarjeta-control';
 
@@ -29,10 +31,10 @@ import { TarjetaControl } from '../../ui/tarjeta-control';
         <app-tarjeta-control [pedido]="p" [recienCreada]="confirmada()" />
 
         <div class="acciones no-imprimir">
-          <button type="button" class="btn btn--borde" (click)="imprimir()"><app-icono nombre="imprimir" [tam]="18" /> Imprimir o guardar PDF</button>
+          <button type="button" class="btn btn--borde" (click)="descargarPdf(p)"><app-icono nombre="documento" [tam]="18" /> Descargar constancia (PDF)</button>
           @if (confirmada()) {
             <a routerLink="/mis-reservas" class="btn btn--borde"><app-icono nombre="lista" [tam]="18" /> Ver mis reservas</a>
-            <a routerLink="/" class="btn btn--tinta">Seguir comprando</a>
+            <a routerLink="/productos" class="btn btn--tinta">Seguir comprando</a>
           } @else if (p.estadoPedido === 'Pendiente') {
             @if (confirmando()) {
               <div class="confirmar-cancelar" role="group" aria-label="Confirmar cancelación">
@@ -96,8 +98,10 @@ export class DetalleReserva implements OnInit {
     });
   }
 
-  protected imprimir(): void {
-    window.print();
+  private readonly negocio = inject(NegocioService);
+
+  protected descargarPdf(p: Pedido): void {
+    reservaPdf(p, this.negocio.datos()).catch(() => this.avisos.error('No se pudo generar el PDF. Inténtalo de nuevo.'));
   }
 
   protected cancelar(): void {

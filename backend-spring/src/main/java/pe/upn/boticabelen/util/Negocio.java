@@ -22,7 +22,8 @@ public final class Negocio {
 
     public static final List<String> ESTADOS = List.of(PENDIENTE, ACEPTADO, RECHAZADO, EN_PREPARACION, LISTO, ENTREGADO, CANCELADO);
 
-    public static final List<String> METODOS_PAGO = List.of("Efectivo", "Yape", "Plin", "Tarjeta");
+    /** Formas de pago aceptadas al recoger. */
+    public static final List<String> METODOS_PAGO = List.of("Efectivo", "Yape");
 
     public static final int STOCK_BAJO = 5;
 

@@ -5,7 +5,7 @@ import { filter, map } from 'rxjs';
 import { AuthService } from '../core/auth.service';
 import { CarritoService } from '../core/carrito.service';
 import { SeguimientoService } from '../core/seguimiento.service';
-import { TIENDA } from '../core/modelos';
+import { NegocioService } from '../core/negocio.service';
 import { Icono } from '../ui/icono';
 
 @Component({
@@ -21,7 +21,7 @@ export class PortalShell {
   private readonly seguimiento = inject(SeguimientoService);
   private readonly router = inject(Router);
 
-  protected readonly tienda = TIENDA;
+  protected readonly negocio = inject(NegocioService);
   protected readonly anio = new Date().getFullYear();
   protected readonly termino = signal('');
   private espera: ReturnType<typeof setTimeout> | undefined;
@@ -58,7 +58,7 @@ export class PortalShell {
   }
 
   private esPortada(): boolean {
-    return this.router.url === '/' || this.router.url.startsWith('/?');
+    return this.router.url === '/productos' || this.router.url.startsWith('/productos?');
   }
 
   protected escribir(valor: string): void {
@@ -73,7 +73,7 @@ export class PortalShell {
   protected buscar(reemplazar = false): void {
     clearTimeout(this.espera);
     const q = this.termino().trim();
-    this.router.navigate(['/'], { queryParams: { q: q || null, pagina: null }, queryParamsHandling: 'merge', replaceUrl: reemplazar });
+    this.router.navigate(['/productos'], { queryParams: { q: q || null, pagina: null }, queryParamsHandling: 'merge', replaceUrl: reemplazar });
   }
 
   protected limpiar(campo: HTMLInputElement): void {

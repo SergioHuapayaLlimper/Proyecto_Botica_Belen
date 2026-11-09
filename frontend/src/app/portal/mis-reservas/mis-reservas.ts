@@ -20,7 +20,7 @@ import { Sello } from '../../ui/sello';
           <h1>Mis reservas</h1>
           <p>Esta lista se actualiza sola. Te avisamos aquí cuando tu reserva cambie de estado.</p>
         </div>
-        <a routerLink="/" class="btn btn--borde"><app-icono nombre="reserva" [tam]="18" /> Nueva reserva</a>
+        <a routerLink="/productos" class="btn btn--borde"><app-icono nombre="reserva" [tam]="18" /> Nueva reserva</a>
       </header>
 
       @if (estado().cargando) {
@@ -32,7 +32,7 @@ import { Sello } from '../../ui/sello';
           <app-icono nombre="lista" [tam]="48" [trazo]="1.25" />
           <h3>Todavía no tienes reservas</h3>
           <p>Cuando confirmes una, aparecerá aquí con su estado.</p>
-          <a routerLink="/" class="btn btn--tinta">Ir al catálogo</a>
+          <a routerLink="/productos" class="btn btn--tinta">Ir al catálogo</a>
         </div>
       } @else {
         <ul class="hoja lista">

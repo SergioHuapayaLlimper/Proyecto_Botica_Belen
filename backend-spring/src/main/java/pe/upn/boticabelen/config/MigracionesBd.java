@@ -236,6 +236,36 @@ public class MigracionesBd implements ApplicationRunner {
                     bd.update("UPDATE producto SET codigoProducto = ? WHERE idProducto = ?",
                             prefijo + "-" + String.format("%04d", n), fila.get("idProducto"));
                 }
+            }),
+
+            new Migracion("006_configuracion_negocio", "Información del negocio editable por el admin (como en Pastelería Web)", bd -> {
+                bd.execute("""
+                        CREATE TABLE IF NOT EXISTS configuracion_negocio (
+                          clave VARCHAR(50) NOT NULL PRIMARY KEY,
+                          valor TEXT NULL
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci""");
+                // Valores iniciales (los que antes estaban fijos en el frontend). INSERT IGNORE respeta lo ya guardado.
+                bd.update("""
+                        INSERT IGNORE INTO configuracion_negocio (clave, valor) VALUES
+                        ('nombre_negocio', 'Botica Belén'),
+                        ('direccion', 'Jr. Dos de Mayo 245, San Vicente de Cañete'),
+                        ('referencia', 'A media cuadra de la Plaza de Armas'),
+                        ('mapa_lat', '-13.0775'),
+                        ('mapa_lng', '-76.3871'),
+                        ('horario_atencion', 'Lunes a sábado de 8:00 a. m. a 10:00 p. m. Domingos de 8:00 a. m. a 1:00 p. m.'),
+                        ('metodos_pago', 'Efectivo, Yape, Plin o tarjeta'),
+                        ('telefono_contacto', '(01) 581-2245'),
+                        ('correo_contacto', 'contacto@boticabelen.pe'),
+                        ('whatsapp_numero', '51987654321'),
+                        ('whatsapp_mensaje', 'Hola, Botica Belén. Quisiera hacer una consulta.'),
+                        ('yape_numero', '987 654 321')""");
+            }),
+
+            new Migracion("007_solo_efectivo_y_yape", "Formas de pago: solo Efectivo y Yape", bd -> {
+                // Los pedidos de prueba con Plin pasan a Yape (también es billetera digital); los de Tarjeta, a Efectivo.
+                bd.update("UPDATE pedido SET metodoPago = 'Yape' WHERE metodoPago = 'Plin'");
+                bd.update("UPDATE pedido SET metodoPago = 'Efectivo' WHERE metodoPago = 'Tarjeta'");
+                bd.update("UPDATE configuracion_negocio SET valor = 'Efectivo o Yape' WHERE clave = 'metodos_pago'");
             })
     );
 

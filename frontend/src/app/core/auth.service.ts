@@ -85,7 +85,7 @@ export class AuthService {
 
   // A dónde ir después de iniciar sesión: el cliente al catálogo; el personal a la primera sección que puede usar.
   inicioSegunRol(): string {
-    if (!this.esPersonal()) return '/';
+    if (!this.esPersonal()) return '/productos';
     const secciones: [Permiso[], string][] = [
       [['resumen'], '/gestion/resumen'],
       [['mostrador'], '/gestion/mostrador'],
@@ -94,8 +94,9 @@ export class AuthService {
       [['categorias'], '/gestion/categorias'],
       [['reporte'], '/gestion/reporte'],
       [['personal'], '/gestion/personal'],
+      [['configuracion'], '/gestion/negocio'],
     ];
-    return secciones.find(([permisos]) => this.puede(...permisos))?.[1] ?? '/';
+    return secciones.find(([permisos]) => this.puede(...permisos))?.[1] ?? '/productos';
   }
 
   private guardar(sesion: Sesion): void {

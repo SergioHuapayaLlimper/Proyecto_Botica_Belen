@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { TIENDA } from '../core/modelos';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { NegocioService } from '../core/negocio.service';
 import { Icono } from './icono';
 
 // Panel lateral de las pantallas de acceso: lo que el cliente necesita saber para recoger.
 @Component({
   selector: 'app-info-recojo',
-  imports: [Icono],
+  imports: [Icono, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <img src="img/logo-botica-belen-192.png" alt="" width="64" height="64" />
@@ -13,15 +14,15 @@ import { Icono } from './icono';
     <dl>
       <div>
         <dt><app-icono nombre="ubicacion" [tam]="18" /> Dónde recoges</dt>
-        <dd>{{ tienda.direccion }}</dd>
+        <dd>{{ negocio.datos().direccion }}. <a routerLink="/contacto">Ver mapa</a></dd>
       </div>
       <div>
         <dt><app-icono nombre="reloj" [tam]="18" /> Horario</dt>
-        <dd>{{ tienda.horario }}</dd>
+        <dd>{{ negocio.datos().horario_atencion }}</dd>
       </div>
       <div>
         <dt><app-icono nombre="efectivo" [tam]="18" /> Cómo pagas</dt>
-        <dd>Al recoger, con efectivo, Yape, Plin o tarjeta.</dd>
+        <dd>Al recoger: {{ negocio.datos().metodos_pago }}.</dd>
       </div>
     </dl>
   `,
@@ -38,8 +39,9 @@ import { Icono } from './icono';
     dt { display: flex; gap: var(--e2); align-items: center; font-weight: 700; color: #fff; }
     dt app-icono { color: #ff8a93; }
     dd { margin: 4px 0 0 26px; font-size: var(--t-chico); line-height: 1.5; }
+    dd a { color: #fff; }
   `,
 })
 export class InfoRecojo {
-  protected readonly tienda = TIENDA;
+  protected readonly negocio = inject(NegocioService);
 }

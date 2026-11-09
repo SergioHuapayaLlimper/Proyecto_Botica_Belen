@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, signal } from '@angular/core';
-import { EstadoPedido, Pedido, TIENDA } from '../core/modelos';
+import { EstadoPedido, Pedido } from '../core/modelos';
+import { NegocioService } from '../core/negocio.service';
 import { MENSAJE_CLIENTE, formatoFecha, formatoSoles, separarPresentacion } from '../core/formato';
 import { Icono } from './icono';
 import { Sello } from './sello';
@@ -28,7 +29,7 @@ export class TarjetaControl {
   readonly recienCreada = input(false);
   readonly vistaPersonal = input(false);
 
-  protected readonly tienda = TIENDA;
+  protected readonly negocio = inject(NegocioService);
   protected readonly soles = formatoSoles;
   protected readonly fecha = formatoFecha;
   protected readonly partes = separarPresentacion;

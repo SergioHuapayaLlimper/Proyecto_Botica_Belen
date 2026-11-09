@@ -90,7 +90,7 @@ export class Registro {
     this.enviando.set(true);
     this.error.set('');
     this.auth.registrar({ nombre: this.nombre.trim(), email: this.email.trim(), telefono: this.telefono.trim(), password: this.password }).subscribe({
-      next: () => this.router.navigateByUrl(this.volver()?.startsWith('/') ? this.volver()! : '/'),
+      next: () => this.router.navigateByUrl(this.volver()?.startsWith('/') ? this.volver()! : '/productos'),
       error: (e) => {
         this.enviando.set(false);
         this.error.set(mensajeError(e));

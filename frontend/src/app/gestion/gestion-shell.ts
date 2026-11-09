@@ -36,6 +36,7 @@ export class GestionShell implements OnDestroy {
     { ruta: '/gestion/reporte', texto: 'Reporte de ventas', icono: 'documento', permisos: ['reporte'] },
     { ruta: '/gestion/personal', texto: 'Personal', icono: 'personas', permisos: ['personal'], grupo: 'Organización' },
     { ruta: '/gestion/roles', texto: 'Roles', icono: 'candado', permisos: ['personal'] },
+    { ruta: '/gestion/negocio', texto: 'Información del negocio', icono: 'tienda', permisos: ['configuracion'] },
   ];
 
   // Solo las secciones que el rol puede usar.

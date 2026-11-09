@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { API, ItemCarrito, MetodoPago, Producto, TIENDA } from '../../core/modelos';
+import { API, ItemCarrito, MetodoPago, Producto } from '../../core/modelos';
+import { NegocioService } from '../../core/negocio.service';
 import { AuthService } from '../../core/auth.service';
 import { CarritoService } from '../../core/carrito.service';
 import { mensajeError } from '../../core/interceptores';
@@ -23,7 +24,7 @@ export class Reserva implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
-  protected readonly tienda = TIENDA;
+  protected readonly negocio = inject(NegocioService);
   protected readonly soles = formatoSoles;
   protected readonly partes = separarPresentacion;
 
@@ -34,12 +35,14 @@ export class Reserva implements OnInit {
   protected readonly intento = signal(false);
   protected readonly retirados = signal<string[]>([]);
 
-  protected readonly metodos: { valor: MetodoPago; icono: string; detalle: string }[] = [
-    { valor: 'Efectivo', icono: 'efectivo', detalle: 'Pagas en caja al recoger' },
-    { valor: 'Yape', icono: 'celular', detalle: `Al ${TIENDA.yape}` },
-    { valor: 'Plin', icono: 'celular', detalle: `Al ${TIENDA.yape}` },
-    { valor: 'Tarjeta', icono: 'tarjeta', detalle: 'Débito o crédito en tienda' },
-  ];
+  // Solo dos formas de pago al recoger: efectivo o Yape (al número que configura el admin).
+  protected readonly metodos = computed<{ valor: MetodoPago; icono: string; detalle: string }[]>(() => {
+    const yape = this.negocio.datos().yape_numero;
+    return [
+      { valor: 'Efectivo', icono: 'efectivo', detalle: 'Pagas en caja al recoger' },
+      { valor: 'Yape', icono: 'celular', detalle: yape ? `Al ${yape}` : 'Al número de la botica' },
+    ];
+  });
 
   ngOnInit(): void {
     this.actualizarPreciosYStock();

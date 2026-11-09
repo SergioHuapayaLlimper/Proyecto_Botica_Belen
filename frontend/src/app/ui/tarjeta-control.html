@@ -116,8 +116,8 @@
 
   @if (!anulada() && p.estadoPedido !== 'Entregado') {
     <footer class="recojo">
-      <p><app-icono nombre="ubicacion" [tam]="18" /> {{ tienda.direccion }}</p>
-      <p><app-icono nombre="reloj" [tam]="18" /> {{ tienda.horario }}</p>
+      <p><app-icono nombre="ubicacion" [tam]="18" /> {{ negocio.datos().direccion }}</p>
+      <p><app-icono nombre="reloj" [tam]="18" /> {{ negocio.datos().horario_atencion }}</p>
       <p><app-icono nombre="usuario" [tam]="18" /> Al recoger, muestra el código <strong class="cifra">{{ p.codigoPedido }}</strong> o tu DNI.</p>
     </footer>
   }

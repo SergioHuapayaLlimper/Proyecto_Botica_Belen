@@ -2,13 +2,18 @@
 
 <header class="banda" [class.banda--portada]="enPortada()">
   <div class="contenedor fila">
-    <a routerLink="/" class="marca" aria-label="Botica Belén, ir al catálogo">
+    <a routerLink="/productos" class="marca" aria-label="Botica Belén, ir a los productos">
       <img src="img/logo-botica-belen-192.png" alt="" width="52" height="52" />
       <span class="marca-texto">
         <strong>Botica Belén</strong>
         <small>Farmacia y cuidado personal</small>
       </span>
     </a>
+
+    <nav class="pestanas" aria-label="Secciones de la tienda">
+      <a routerLink="/productos" routerLinkActive="activa">Productos</a>
+      <a routerLink="/contacto" routerLinkActive="activa">Contacto</a>
+    </nav>
 
     <nav class="acciones" aria-label="Tu cuenta">
       @if (auth.esCliente()) {
@@ -74,7 +79,7 @@
   <ol class="contenedor pasos" aria-label="Cómo funciona">
     <li><span class="paso-n">1</span><p><strong>Separa</strong> lo que necesitas. El stock que ves es el real.</p></li>
     <li><span class="paso-n">2</span><p><strong>Lo preparamos</strong> en el anaquel mientras vienes.</p></li>
-    <li><span class="paso-n">3</span><p><strong>Paga al recoger</strong> con efectivo, Yape, Plin o tarjeta.</p></li>
+    <li><span class="paso-n">3</span><p><strong>Paga al recoger</strong> en efectivo o con Yape.</p></li>
   </ol>
 }
 
@@ -93,13 +98,16 @@
     </div>
     <div>
       <h2 class="pie-titulo">Visítanos</h2>
-      <p><app-icono nombre="ubicacion" [tam]="18" /> {{ tienda.direccion }}</p>
-      <p><app-icono nombre="reloj" [tam]="18" /> {{ tienda.horario }}</p>
+      <p><app-icono nombre="ubicacion" [tam]="18" /> {{ negocio.datos().direccion }}</p>
+      <p><app-icono nombre="reloj" [tam]="18" /> {{ negocio.datos().horario_atencion }}</p>
     </div>
     <div>
       <h2 class="pie-titulo">Contacto</h2>
-      <p><app-icono nombre="telefono" [tam]="18" /> {{ tienda.telefono }}</p>
-      <p><app-icono nombre="celular" [tam]="18" /> WhatsApp {{ tienda.whatsapp }}</p>
+      <p><app-icono nombre="telefono" [tam]="18" /> {{ negocio.datos().telefono_contacto }}</p>
+      @if (negocio.datos().whatsapp_numero) {
+        <p><app-icono nombre="celular" [tam]="18" /> WhatsApp {{ negocio.whatsappVisible() }}</p>
+      }
+      <p><a routerLink="/contacto" class="pie-enlace">Ver el mapa y más datos</a></p>
     </div>
   </div>
   <div class="contenedor pie-legal">

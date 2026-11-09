@@ -11,7 +11,8 @@ export type Permiso =
   | 'productos_editar'
   | 'categorias'
   | 'reporte'
-  | 'personal';
+  | 'personal'
+  | 'configuracion';
 
 export interface Usuario {
   idUsuario: number;
@@ -95,7 +96,7 @@ export type EstadoPedido =
   | 'Entregado'
   | 'Cancelado';
 
-export type MetodoPago = 'Efectivo' | 'Yape' | 'Plin' | 'Tarjeta';
+export type MetodoPago = 'Efectivo' | 'Yape';
 
 export interface PedidoResumen {
   idPedido: number;

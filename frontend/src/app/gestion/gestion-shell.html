@@ -3,7 +3,7 @@
 <div class="marco">
   <aside class="riel" [class.abierto]="menuAbierto()" aria-label="Menú del panel">
     <div class="riel-cabeza">
-      <a routerLink="/" class="marca" title="Ver la tienda">
+      <a routerLink="/productos" class="marca" title="Ver la tienda">
         <img src="img/logo-botica-belen-192.png" alt="" width="44" height="44" />
         <span><strong>Botica Belén</strong><small>Panel de gestión</small></span>
       </a>
@@ -33,7 +33,7 @@
           <small>{{ auth.rol() }}</small>
         </span>
       </div>
-      <a routerLink="/" class="enlace-pie"><app-icono nombre="tienda" [tam]="18" /> Ver la tienda</a>
+      <a routerLink="/productos" class="enlace-pie"><app-icono nombre="tienda" [tam]="18" /> Ver la tienda</a>
       <button type="button" class="enlace-pie" (click)="auth.salir('/ingresar')"><app-icono nombre="salir" [tam]="18" /> Cerrar sesión</button>
     </div>
   </aside>

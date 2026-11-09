@@ -6,6 +6,9 @@ import { catchError, of } from 'rxjs';
 import { ESTADOS_LISTA } from '../../core/estados';
 import { Producto, Reporte as ReporteModelo } from '../../core/modelos';
 import { formatoFecha, formatoSoles, separarPresentacion } from '../../core/formato';
+import { reporteExcel, reportePdf } from '../../core/exportar';
+import { NegocioService } from '../../core/negocio.service';
+import { AvisosService } from '../../core/avisos.service';
 import { mensajeError } from '../../core/interceptores';
 import { Icono } from '../../ui/icono';
 import { Sello } from '../../ui/sello';
@@ -19,12 +22,12 @@ import { GestionService } from '../gestion.service';
       <header class="pagina-cabecera no-imprimir">
         <div>
           <h1>Reporte de ventas</h1>
-          <p>Filtra por fechas, estado o producto. Puedes exportarlo a Excel (CSV) o imprimirlo.</p>
+          <p>Filtra por fechas, estado o producto, y descárgalo en Excel o PDF.</p>
         </div>
         @if (datos()) {
           <div class="botones">
-            <button type="button" class="btn btn--borde" (click)="exportar()"><app-icono nombre="descargar" [tam]="18" /> Exportar CSV</button>
-            <button type="button" class="btn btn--borde" (click)="imprimir()"><app-icono nombre="imprimir" [tam]="18" /> Imprimir</button>
+            <button type="button" class="btn btn--borde" [disabled]="exportando()" (click)="excel()"><app-icono nombre="descargar" [tam]="18" /> Descargar Excel</button>
+            <button type="button" class="btn btn--borde" [disabled]="exportando()" (click)="pdf()"><app-icono nombre="documento" [tam]="18" /> Descargar PDF</button>
           </div>
         }
       </header>
@@ -177,23 +180,34 @@ export class Reporte {
     });
   }
 
-  protected imprimir(): void {
-    window.print();
+  private readonly negocio = inject(NegocioService);
+  private readonly avisos = inject(AvisosService);
+  protected readonly exportando = signal(false);
+
+  // Filtros tal como los ve el usuario (nombre del producto, no su id).
+  private filtros() {
+    const p = this.productos().find((x) => String(x.idProducto) === String(this.producto));
+    return { estado: this.estado, producto: p ? `${this.partes(p.nombreProducto).nombre} (${p.codigoProducto})` : '' };
   }
 
-  // CSV con separador ";" y BOM para que Excel en español lo abra con tildes y columnas correctas.
-  protected exportar(): void {
+  protected excel(): Promise<void> {
+    return this.exportar((d) => reporteExcel(d, this.negocio.datos(), this.filtros()));
+  }
+
+  protected pdf(): Promise<void> {
+    return this.exportar((d) => reportePdf(d, this.negocio.datos(), this.filtros()));
+  }
+
+  private async exportar(generar: (d: ReporteModelo) => Promise<void>): Promise<void> {
     const d = this.datos();
     if (!d) return;
-    const filas = [
-      ['Fecha', 'Código', 'Cliente', 'Pago', 'Estado', 'Op. gravada', 'IGV', 'Total'],
-      ...d.pedidos.map((p) => [p.fechaHoraToma, p.codigoPedido, p.nombreCliente ?? '', p.metodoPago ?? '', p.estadoPedido, p.subtotalGeneral.toFixed(2), p.igv.toFixed(2), p.total.toFixed(2)]),
-    ];
-    const csv = filas.map((f) => f.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\r\n');
-    const enlace = document.createElement('a');
-    enlace.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
-    enlace.download = `reporte-ventas-${d.desde}-al-${d.hasta}.csv`;
-    enlace.click();
-    URL.revokeObjectURL(enlace.href);
+    this.exportando.set(true);
+    try {
+      await generar(d);
+    } catch {
+      this.avisos.error('No se pudo generar el archivo. Inténtalo de nuevo.');
+    } finally {
+      this.exportando.set(false);
+    }
   }
 }

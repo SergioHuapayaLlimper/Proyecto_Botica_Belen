@@ -1,7 +1,7 @@
 <!-- En celular: carril de categorías desplazable. En escritorio las categorías viven en el riel lateral. -->
 <nav class="categorias" aria-label="Categorías">
   <div class="contenedor carril">
-    <a class="chip" [class.activo]="!categoria()" routerLink="/" [queryParams]="{ q: q() || null }" [attr.aria-current]="!categoria() ? 'page' : null">
+    <a class="chip" [class.activo]="!categoria()" routerLink="/productos" [queryParams]="{ q: q() || null }" [attr.aria-current]="!categoria() ? 'page' : null">
       <app-icono nombre="cat-0" [tam]="20" [trazo]="1.5" />
       <span>Todo</span>
       <small class="cifra">{{ totalCatalogo() }}</small>
@@ -10,7 +10,7 @@
       <a
         class="chip"
         [class.activo]="categoria() === c.idCategoria"
-        routerLink="/"
+        routerLink="/productos"
         [queryParams]="{ categoria: c.idCategoria, q: q() || null }"
         [attr.aria-current]="categoria() === c.idCategoria ? 'page' : null"
       >
@@ -27,14 +27,14 @@
     <h2 class="riel-titulo">Categorías</h2>
     <ul class="lista-categorias">
       <li>
-        <a routerLink="/" [queryParams]="{ q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }" [class.activo]="!categoria()" [attr.aria-current]="!categoria() ? 'page' : null">
+        <a routerLink="/productos" [queryParams]="{ q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }" [class.activo]="!categoria()" [attr.aria-current]="!categoria() ? 'page' : null">
           <app-icono nombre="cat-0" [tam]="18" [trazo]="1.5" /><span>Todo el catálogo</span><small class="cifra">{{ totalCatalogo() }}</small>
         </a>
       </li>
       @for (c of categorias(); track c.idCategoria) {
         <li>
           <a
-            routerLink="/"
+            routerLink="/productos"
             [queryParams]="{ categoria: c.idCategoria, q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }"
             [class.activo]="categoria() === c.idCategoria"
             [attr.aria-current]="categoria() === c.idCategoria ? 'page' : null"
@@ -108,7 +108,7 @@
           <app-icono nombre="buscar" [tam]="48" [trazo]="1.25" />
           <h3>No encontramos productos{{ q() ? ' para «' + q() + '»' : '' }}</h3>
           <p>Prueba con otro nombre o revisa todas las categorías. Si tu medicamento requiere receta, consúltalo en tienda.</p>
-          <a class="btn btn--borde" routerLink="/">Ver todo el catálogo</a>
+          <a class="btn btn--borde" routerLink="/productos">Ver todo el catálogo</a>
         </div>
       } @else {
         <!-- Un solo pliego de formulario: cada ficha es una celda separada por el filete impreso -->
