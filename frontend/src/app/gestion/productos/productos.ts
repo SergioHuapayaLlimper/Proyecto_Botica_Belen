@@ -10,11 +10,12 @@ import { formatoSoles, separarPresentacion } from '../../core/formato';
 import { mensajeError } from '../../core/interceptores';
 import { Icono } from '../../ui/icono';
 import { Sello } from '../../ui/sello';
+import { Pictograma } from '../../ui/pictograma';
 import { GestionService } from '../gestion.service';
 
 @Component({
   selector: 'app-productos',
-  imports: [FormsModule, RouterLink, Icono, Sello],
+  imports: [FormsModule, RouterLink, Icono, Sello, Pictograma],
   templateUrl: './productos.html',
   styleUrl: './productos.scss',
 })

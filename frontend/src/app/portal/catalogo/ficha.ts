@@ -15,7 +15,7 @@ import { Sello } from '../../ui/sello';
   template: `
     <article class="ficha" [class.agotada]="p().stock === 0">
       <a class="cabeza" [routerLink]="['/producto', p().idProducto]">
-        <app-pictograma [categoria]="p().idCategoria" [imagen]="p().imagenURL" [alt]="p().nombreProducto" [tamIcono]="24" [style.view-transition-name]="'producto-' + p().idProducto" />
+        <app-pictograma [categoria]="p().idCategoria" [imagen]="p().imagenURL" [alt]="p().nombreProducto" [tamIcono]="48" [style.view-transition-name]="'producto-' + p().idProducto" />
         <div class="nombre">
           <h3>{{ partes().nombre }}</h3>
           @if (partes().presentacion) {

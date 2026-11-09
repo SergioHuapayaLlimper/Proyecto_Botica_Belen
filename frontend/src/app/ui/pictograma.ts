@@ -25,7 +25,7 @@ import { Icono } from './icono';
       border-radius: var(--radio);
       overflow: hidden;
     }
-    img { width: 100%; height: 100%; object-fit: contain; padding: 10%; background: #fff; }
+    img { width: 100%; height: 100%; object-fit: contain; padding: var(--relleno, 10%); background: #fff; transition: transform 220ms var(--sale); }
   `,
 })
 export class Pictograma {

@@ -1,7 +1,7 @@
 <!-- En celular: carril de categorías desplazable. En escritorio las categorías viven en el riel lateral. -->
 <nav class="categorias" aria-label="Categorías">
-  <div class="contenedor carril">
-    <a class="chip" [class.activo]="!categoria()" routerLink="/productos" [queryParams]="{ q: q() || null }" [attr.aria-current]="!categoria() ? 'page' : null">
+  <div class="contenedor carril" #carril>
+    <a class="chip" [class.activo]="!categoria()" routerLink="/productos" [queryParams]="{ categoria: null, pagina: null }" queryParamsHandling="merge" [attr.aria-current]="!categoria() ? 'page' : null" (click)="alElegir()">
       <app-icono nombre="cat-0" [tam]="20" [trazo]="1.5" />
       <span>Todo</span>
       <small class="cifra">{{ totalCatalogo() }}</small>
@@ -10,9 +10,12 @@
       <a
         class="chip"
         [class.activo]="categoria() === c.idCategoria"
+        [class.vacia]="!c.productos"
         routerLink="/productos"
-        [queryParams]="{ categoria: c.idCategoria, q: q() || null }"
+        [queryParams]="{ categoria: c.idCategoria, pagina: null }"
+        queryParamsHandling="merge"
         [attr.aria-current]="categoria() === c.idCategoria ? 'page' : null"
+        (click)="alElegir()"
       >
         <app-icono [nombre]="'cat-' + c.idCategoria" [tam]="20" [trazo]="1.5" />
         <span>{{ c.nombreCategoria }}</span>
@@ -27,7 +30,7 @@
     <h2 class="riel-titulo">Categorías</h2>
     <ul class="lista-categorias">
       <li>
-        <a routerLink="/productos" [queryParams]="{ q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }" [class.activo]="!categoria()" [attr.aria-current]="!categoria() ? 'page' : null">
+        <a routerLink="/productos" [queryParams]="{ categoria: null, pagina: null }" queryParamsHandling="merge" [class.activo]="!categoria()" [attr.aria-current]="!categoria() ? 'page' : null" (click)="alElegir()">
           <app-icono nombre="cat-0" [tam]="18" [trazo]="1.5" /><span>Todo el catálogo</span><small class="cifra">{{ totalCatalogo() }}</small>
         </a>
       </li>
@@ -35,15 +38,24 @@
         <li>
           <a
             routerLink="/productos"
-            [queryParams]="{ categoria: c.idCategoria, q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }"
+            [queryParams]="{ categoria: c.idCategoria, pagina: null }"
+            queryParamsHandling="merge"
             [class.activo]="categoria() === c.idCategoria"
+            [class.vacia]="!c.productos"
             [attr.aria-current]="categoria() === c.idCategoria ? 'page' : null"
+            [attr.title]="c.nombreCategoria"
+            (click)="alElegir()"
           >
             <app-icono [nombre]="'cat-' + c.idCategoria" [tam]="18" [trazo]="1.5" /><span>{{ c.nombreCategoria }}</span><small class="cifra">{{ c.productos }}</small>
           </a>
         </li>
       }
     </ul>
+    @if (categoria()) {
+      <a class="quitar-filtro" routerLink="/productos" [queryParams]="{ categoria: null, pagina: null }" queryParamsHandling="merge" (click)="alElegir()">
+        <app-icono nombre="cerrar" [tam]="16" /> Quitar filtro de categoría
+      </a>
+    }
   </aside>
 
   <div class="principal">

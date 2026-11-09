@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, computed, inject, viewChild } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -66,6 +66,26 @@ export class Catalogo {
 
   protected filtrar(cambios: Record<string, string | number | null>): void {
     this.router.navigate([], { queryParams: { ...cambios, pagina: cambios['pagina'] ?? null }, queryParamsHandling: 'merge' });
+  }
+
+  private readonly carril = viewChild<ElementRef<HTMLElement>>('carril');
+
+  constructor() {
+    // En celular, la categoría elegida se desliza a la vista dentro del carril.
+    afterRenderEffect(() => {
+      this.categoria();
+      this.categorias();
+      const activo = this.carril()?.nativeElement.querySelector<HTMLElement>('.chip.activo');
+      activo?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+  }
+
+  /** Al cambiar de categoría, lleva al inicio del listado si quedó fuera de la vista. */
+  protected alElegir(): void {
+    const destino = document.getElementById('resultados');
+    if (destino && destino.getBoundingClientRect().top < 0) {
+      destino.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }
   }
 
   protected irAPagina(n: number): void {

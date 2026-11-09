@@ -80,13 +80,18 @@
               <tr [class.inactivo]="p.estadoProducto === 'Inactivo'">
                 <td class="cifra codigo">{{ p.codigoProducto }}</td>
                 <td>
-                  <strong>{{ partes(p.nombreProducto).nombre }}</strong>
-                  <span class="sub">
-                    {{ partes(p.nombreProducto).presentacion }}{{ partes(p.nombreProducto).presentacion ? ', ' : '' }}{{ p.nombreCategoria }}
-                    @if (p.requiere_receta) {
-                      <span class="receta"><app-icono nombre="receta" [tam]="14" /> Con receta</span>
-                    }
-                  </span>
+                  <div class="producto">
+                    <app-pictograma class="miniatura" [categoria]="p.idCategoria" [imagen]="p.imagenURL" [alt]="''" [tamIcono]="20" />
+                    <div>
+                      <strong>{{ partes(p.nombreProducto).nombre }}</strong>
+                      <span class="sub">
+                        {{ partes(p.nombreProducto).presentacion }}{{ partes(p.nombreProducto).presentacion ? ', ' : '' }}{{ p.nombreCategoria }}
+                        @if (p.requiere_receta) {
+                          <span class="receta"><app-icono nombre="receta" [tam]="14" /> Con receta</span>
+                        }
+                      </span>
+                    </div>
+                  </div>
                 </td>
                 <td class="cifra anaquel">{{ p.ubicacionAnaquel || '—' }}</td>
                 <td class="derecha cifra">{{ soles(p.precioProducto) }}</td>

@@ -29,6 +29,22 @@
   white-space: nowrap;
 }
 
+.producto {
+  display: flex;
+  gap: var(--e3);
+  align-items: center;
+}
+
+// Miniatura de la foto actual (o el pictograma de la categoría si no tiene).
+.miniatura {
+  --lado: 44px;
+  --relleno: 4px;
+}
+
+.inactivo .miniatura {
+  opacity: 0.5;
+}
+
 .sub {
   display: block;
   font-size: 0.8125rem;

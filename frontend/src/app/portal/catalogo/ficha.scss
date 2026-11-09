@@ -28,17 +28,22 @@
 
 .cabeza {
   display: flex;
+  flex-direction: column;
   gap: var(--e3);
-  align-items: flex-start;
   padding: var(--e4);
   color: var(--texto);
   text-decoration: none;
 
-  // Pictograma discreto: identifica la categoría sin repetirse a gritos en el pliego.
+  // La foto ocupa todo el ancho de la ficha para que el producto se reconozca de un vistazo.
   app-pictograma {
-    --lado: 46px;
+    --relleno: 14px;
 
-    opacity: 0.85;
+    width: 100%;
+    height: 168px;
+  }
+
+  &:hover ::ng-deep app-pictograma img {
+    transform: scale(1.05);
   }
 
   &:hover h3 {
