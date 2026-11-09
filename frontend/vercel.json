@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/:ruta*", "destination": "https://CAMBIAR-POR-TU-API.onrender.com/api/:ruta*" },
+    { "source": "/api/:ruta*", "destination": "https://botica-belen-api.onrender.com/api/:ruta*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
