@@ -1,4 +1,7 @@
 {
+  "framework": "angular",
+  "buildCommand": "ng build",
+  "outputDirectory": "dist/frontend/browser",
   "rewrites": [
     { "source": "/api/:ruta*", "destination": "https://botica-belen-api.onrender.com/api/:ruta*" },
     { "source": "/(.*)", "destination": "/index.html" }
