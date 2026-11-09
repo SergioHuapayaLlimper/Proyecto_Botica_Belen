@@ -22,6 +22,7 @@ const ICONOS: Record<string, string[]> = {
   filtro: ['M4 6.5h16', 'M7 12h10', 'M10 17.5h4'],
   campana: ['M18 16v-5a6 6 0 1 0-12 0v5l-2 2h16l-2-2z', 'M10 21h4'],
   caja: ['M3.5 7.5L12 3.5l8.5 4v9L12 20.5l-8.5-4v-9z', 'M3.5 7.5L12 11.5l8.5-4', 'M12 11.5v9'],
+  etiqueta: ['M3.5 4.5h8l9 9-7 7-9-9z', 'M8 9h.01'],
   lista: ['M9 6h11', 'M9 12h11', 'M9 18h11', 'M4.5 6h.01', 'M4.5 12h.01', 'M4.5 18h.01'],
   grafico: ['M5 20V11', 'M10.5 20V5', 'M16 20v-6.5', 'M3 20h18'],
   documento: ['M7 3h7l5 5v13H7z', 'M14 3v5h5', 'M10 13h6', 'M10 17h6'],

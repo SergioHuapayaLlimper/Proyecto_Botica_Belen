@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import pe.upn.boticabelen.dto.Respuestas.*;
 import pe.upn.boticabelen.dto.Solicitudes.*;
 import pe.upn.boticabelen.entity.Usuario;
+import pe.upn.boticabelen.seguridad.Permisos;
 import pe.upn.boticabelen.seguridad.Requiere;
 import pe.upn.boticabelen.seguridad.UsuarioActual;
 import pe.upn.boticabelen.service.DashboardService;
@@ -14,10 +15,7 @@ import pe.upn.boticabelen.service.PedidoService;
 import pe.upn.boticabelen.service.ProductoService;
 
 /**
- * Panel de gestión.
- * - Pedidos: Admin y Empleado consultan; solo el Empleado cambia estados.
- * - Productos: Admin y Empleado consultan; solo Admin crea, edita y ajusta stock.
- * - Personal, resumen y reporte: solo Admin.
+ * Panel de gestión. Cada endpoint exige un permiso del rol (ver seguridad/Permisos).
  */
 @RestController
 @RequestMapping("/api/gestion")
@@ -37,38 +35,32 @@ public class GestionController {
     }
 
     // ============================ PEDIDOS ============================
-    @Requiere({"Admin", "Empleado"})
+    @Requiere({Permisos.PEDIDOS, Permisos.MOSTRADOR})
     @GetMapping("/pedidos")
     public List<PedidoGestionDto> pedidos(@RequestParam(required = false) String estado, @RequestParam(required = false) String q) {
         return pedidoService.bandeja(estado, q);
     }
 
-    @Requiere({"Admin", "Empleado"})
+    @Requiere(Permisos.MOSTRADOR)
     @GetMapping("/preparar")
     public List<LineaPrepararDto> preparar() {
         return pedidoService.porPreparar();
     }
 
-    @Requiere({"Admin", "Empleado"})
+    @Requiere(personal = true) // aviso de reservas nuevas en el menú: para todo el personal
     @GetMapping("/pedidos/resumen")
     public PendientesDto resumenPedidos() {
         return pedidoService.pendientes();
     }
 
-    @Requiere("Empleado")
+    @Requiere(Permisos.PEDIDOS_ESTADO)
     @PatchMapping("/pedidos/{id}/estado")
     public PedidoDetalleDto cambiarEstado(@PathVariable String id, @RequestBody EstadoRequest req, @UsuarioActual Usuario usuario) {
         return pedidoService.cambiarEstadoPorEmpleado(id, req, usuario);
     }
 
     // ============================ PRODUCTOS ============================
-    @Requiere({"Admin", "Empleado"})
-    @GetMapping("/categorias")
-    public List<CategoriaDto> categorias() {
-        return productoService.categorias();
-    }
-
-    @Requiere({"Admin", "Empleado"})
+    @Requiere({Permisos.PRODUCTOS, Permisos.PRODUCTOS_EDITAR, Permisos.REPORTE}) // el reporte filtra por producto
     @GetMapping("/productos")
     public List<ProductoDto> productos(@RequestParam(required = false) String q,
                                        @RequestParam(required = false) String categoria,
@@ -78,52 +70,52 @@ public class GestionController {
         return productoService.listar(q, categoria, stock, estado, orden);
     }
 
-    @Requiere({"Admin", "Empleado"})
+    @Requiere({Permisos.PRODUCTOS, Permisos.PRODUCTOS_EDITAR})
     @GetMapping("/productos/{id}")
     public ProductoDto producto(@PathVariable String id) {
         return productoService.obtener(id);
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.PRODUCTOS_EDITAR)
     @PostMapping("/productos")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductoDto crearProducto(@RequestBody ProductoRequest req) {
         return productoService.crear(req);
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.PRODUCTOS_EDITAR)
     @PutMapping("/productos/{id}")
     public ProductoDto actualizarProducto(@PathVariable String id, @RequestBody ProductoRequest req) {
         return productoService.actualizar(id, req);
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.PRODUCTOS_EDITAR)
     @PatchMapping("/productos/{id}/stock")
     public ProductoDto fijarStock(@PathVariable String id, @RequestBody StockRequest req) {
         return productoService.fijarStock(id, req.stock());
     }
 
     // ============================ PERSONAL ============================
-    @Requiere("Admin")
+    @Requiere(Permisos.PERSONAL)
     @GetMapping("/empleados")
     public List<EmpleadoDto> empleados() {
         return empleadoService.listar();
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.PERSONAL)
     @PostMapping("/empleados")
     @ResponseStatus(HttpStatus.CREATED)
     public EmpleadoDto crearEmpleado(@RequestBody EmpleadoRequest req) {
         return empleadoService.crear(req);
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.PERSONAL)
     @PutMapping("/empleados/{id}")
     public EmpleadoDto actualizarEmpleado(@PathVariable String id, @RequestBody EmpleadoRequest req, @UsuarioActual Usuario usuario) {
         return empleadoService.actualizar(id, req, usuario);
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.PERSONAL)
     @DeleteMapping("/empleados/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminarEmpleado(@PathVariable String id, @UsuarioActual Usuario usuario) {
@@ -131,13 +123,13 @@ public class GestionController {
     }
 
     // ============================ RESUMEN Y REPORTE ============================
-    @Requiere("Admin")
+    @Requiere(Permisos.RESUMEN)
     @GetMapping("/dashboard")
     public DashboardDto dashboard(@RequestParam(required = false) String desde, @RequestParam(required = false) String hasta) {
         return dashboardService.resumen(desde, hasta);
     }
 
-    @Requiere("Admin")
+    @Requiere(Permisos.REPORTE)
     @GetMapping("/reporte")
     public ReporteDto reporte(@RequestParam(required = false) String desde, @RequestParam(required = false) String hasta,
                               @RequestParam(required = false) String estado, @RequestParam(required = false) String producto) {

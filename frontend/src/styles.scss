@@ -321,25 +321,16 @@ textarea {
   width: 100%;
 }
 
-// ---- Casilla de formulario: el rótulo vive dentro del recuadro, como en una libreta ----
+// ---- Casilla de formulario: rótulo arriba, campo con su propio borde ----
 .casilla {
-  position: relative;
-  display: block;
-  padding: 7px var(--e3) 6px;
-  background: var(--papel);
-  border: 1px solid var(--rayado-fuerte);
-  border-radius: var(--radio);
-  transition:
-    border-color 160ms var(--sale),
-    box-shadow 160ms var(--sale);
-
-  &:focus-within {
-    border-color: var(--tinta);
-    box-shadow: 0 0 0 3px rgb(31 108 176 / 0.18);
-  }
+  display: grid;
+  gap: 6px;
+  align-content: start;
 
   > .rotulo {
-    margin-bottom: 1px;
+    font-size: var(--t-chico);
+    font-weight: 600;
+    color: var(--texto);
   }
 
   input,
@@ -347,17 +338,31 @@ textarea {
   textarea {
     display: block;
     width: 100%;
-    min-height: 30px;
-    padding: 2px 0;
+    min-height: 48px;
+    padding: 0 14px;
     font-size: var(--t-cuerpo);
     color: var(--texto);
-    background: transparent;
-    border: 0;
+    background: var(--papel);
+    border: 1px solid var(--rayado-fuerte);
+    border-radius: var(--radio);
     outline: none;
+    transition:
+      border-color 160ms var(--sale),
+      box-shadow 160ms var(--sale);
+
+    &:hover {
+      border-color: #8fa2bf;
+    }
+
+    &:focus {
+      border-color: var(--tinta);
+      box-shadow: 0 0 0 3px rgb(31 108 176 / 0.18);
+    }
   }
 
   textarea {
-    min-height: 72px;
+    min-height: 96px;
+    padding: 12px 14px;
     resize: vertical;
   }
 
@@ -367,11 +372,19 @@ textarea {
 
   input::placeholder,
   textarea::placeholder {
-    color: #6b7385;
+    color: #8a93a5;
   }
 
   &.casilla--error {
-    border-color: var(--error);
+    > .rotulo {
+      color: var(--error);
+    }
+
+    input,
+    select,
+    textarea {
+      border-color: var(--error);
+    }
   }
 }
 

@@ -12,6 +12,9 @@
 
     <nav>
       @for (e of menu(); track e.ruta) {
+        @if (e.grupo) {
+          <p class="grupo">{{ e.grupo }}</p>
+        }
         <a [routerLink]="e.ruta" routerLinkActive="activo">
           <app-icono [nombre]="e.icono" [tam]="20" />
           <span>{{ e.texto }}</span>
@@ -27,7 +30,7 @@
         <span class="inicial" aria-hidden="true">{{ auth.nombreCorto().charAt(0) }}</span>
         <span>
           <strong>{{ auth.usuario()?.nombre }}</strong>
-          <small>{{ auth.rol() === 'Admin' ? 'Administrador' : 'Empleado' }}</small>
+          <small>{{ auth.rol() }}</small>
         </span>
       </div>
       <a routerLink="/" class="enlace-pie"><app-icono nombre="tienda" [tam]="18" /> Ver la tienda</a>

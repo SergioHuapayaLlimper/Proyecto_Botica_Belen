@@ -25,26 +25,26 @@ public class PedidoController {
         this.pedidoService = pedidoService;
     }
 
-    @Requiere("Cliente")
+    @Requiere(cliente = true)
     @GetMapping("/carrito")
     public List<ItemCarritoDto> carrito(@UsuarioActual Usuario usuario) {
         return carritoService.obtener(usuario.getIdUsuario());
     }
 
-    @Requiere("Cliente")
+    @Requiere(cliente = true)
     @PutMapping("/carrito")
     public List<ItemCarritoDto> guardarCarrito(@UsuarioActual Usuario usuario, @RequestBody CarritoRequest req) {
         return carritoService.guardar(usuario.getIdUsuario(), req.items());
     }
 
-    @Requiere("Cliente")
+    @Requiere(cliente = true)
     @PostMapping("/pedidos")
     @ResponseStatus(HttpStatus.CREATED)
     public PedidoCreadoDto registrar(@UsuarioActual Usuario usuario, @RequestBody PedidoRequest req) {
         return pedidoService.registrar(usuario.getIdUsuario(), req);
     }
 
-    @Requiere("Cliente")
+    @Requiere(cliente = true)
     @GetMapping("/pedidos/mios")
     public List<PedidoClienteDto> misPedidos(@UsuarioActual Usuario usuario) {
         return pedidoService.delCliente(usuario.getIdUsuario());
@@ -56,7 +56,7 @@ public class PedidoController {
         return pedidoService.detalle(id, usuario);
     }
 
-    @Requiere("Cliente")
+    @Requiere(cliente = true)
     @PostMapping("/pedidos/{id}/cancelar")
     public PedidoDetalleDto cancelar(@PathVariable String id, @UsuarioActual Usuario usuario) {
         return pedidoService.cancelarPorCliente(id, usuario);

@@ -14,6 +14,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
 
     boolean existsByCodigoProductoAndIdProductoNot(String codigoProducto, Integer idProducto);
 
+    long countByCategoriaIdCategoria(Integer idCategoria);
+
+    List<Producto> findByCategoriaIdCategoriaOrderByIdProductoAsc(Integer idCategoria);
+
+    /** Mayor número usado con un prefijo: "CUI-0007" → 7 (0 si no hay ninguno). */
+    @Query(value = """
+            SELECT COALESCE(MAX(CAST(SUBSTRING(codigoProducto, LENGTH(:prefijo) + 2) AS UNSIGNED)), 0)
+            FROM producto WHERE codigoProducto LIKE CONCAT(:prefijo, '-%')""", nativeQuery = true)
+    Number ultimoNumero(@Param("prefijo") String prefijo);
+
     /** SELECT ... FOR UPDATE: bloquea las filas para no vender dos veces la última unidad. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Producto p WHERE p.idProducto IN :ids")

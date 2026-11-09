@@ -16,17 +16,28 @@ public final class Respuestas {
     public record SaludDto(String estado, String baseDeDatos) {}
 
     // ---------- Usuarios y sesión ----------
-    public record UsuarioDto(Integer idUsuario, String nombre, String email, String telefono, String rol) {}
+    /** rol: nombre del rol ("Administrador", "Empleado"...) o "Cliente". tipo: "Personal" o "Cliente". */
+    public record UsuarioDto(Integer idUsuario, String nombre, String email, String telefono, String rol, String tipo,
+                             List<String> permisos) {}
 
     public record SesionDto(String token, UsuarioDto usuario) {}
 
-    public record EmpleadoDto(Integer idUsuario, String nombre, String telefono, String email, String rol,
-                              Integer estado, Integer intentos_fallidos, String bloqueado_hasta) {}
+    public record EmpleadoDto(Integer idUsuario, String nombre, String telefono, String email, Integer idRol, String rol,
+                              boolean rolSistema, Integer estado, Integer intentos_fallidos, String bloqueado_hasta,
+                              String creadoEn) {}
+
+    public record PermisoDto(String clave, String nombre, String descripcion) {}
+
+    public record RolDto(Integer idRol, String nombre, String descripcion, List<String> permisos, boolean esSistema,
+                         long totalUsuarios, String creadoEn) {}
 
     // ---------- Catálogo ----------
     public record CategoriaPublicaDto(Integer idCategoria, String nombreCategoria, Long productos) {}
 
-    public record CategoriaDto(Integer idCategoria, String nombreCategoria, String estadoCategoria) {}
+    public record CategoriaDto(Integer idCategoria, String nombreCategoria, String estadoCategoria, String prefijo,
+                               long totalProductos) {}
+
+    public record CodigoDto(String codigo) {}
 
     public record ProductoPublicoDto(Integer idProducto, Integer idCategoria, String nombreCategoria, String codigoProducto,
                                      String nombreProducto, String principioActivo, String descripcionProducto,

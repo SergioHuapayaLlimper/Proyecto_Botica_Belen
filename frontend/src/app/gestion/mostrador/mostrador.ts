@@ -52,7 +52,7 @@ export class Mostrador {
   protected readonly accion = ACCION_ESTADO;
   protected readonly hoy = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long' });
 
-  protected readonly puedeActuar = computed(() => this.auth.rol() === 'Empleado');
+  protected readonly puedeActuar = computed(() => this.auth.puede('pedidos_estado'));
 
   protected readonly grupos = computed<GrupoEstante[]>(() => {
     const mapa = new Map<string, LineaPreparar[]>();

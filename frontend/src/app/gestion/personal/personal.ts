@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Empleado } from '../../core/modelos';
+import { RouterLink } from '@angular/router';
+import { Empleado, RolPersonal } from '../../core/modelos';
 import { aFecha } from '../../core/formato';
 import { AuthService } from '../../core/auth.service';
 import { AvisosService } from '../../core/avisos.service';
@@ -13,16 +14,16 @@ interface Ficha {
   nombre: string;
   email: string;
   telefono: string;
-  rol: 'Admin' | 'Empleado';
+  idRol: number | null;
   estado: boolean;
   password: string;
 }
 
-const vacia = (): Ficha => ({ nombre: '', email: '', telefono: '', rol: 'Empleado', estado: true, password: '' });
+const vacia = (): Ficha => ({ nombre: '', email: '', telefono: '', idRol: null, estado: true, password: '' });
 
 @Component({
   selector: 'app-personal',
-  imports: [FormsModule, Icono, Sello],
+  imports: [FormsModule, RouterLink, Icono, Sello],
   template: `
     <div class="pagina">
       <header class="pagina-cabecera">
@@ -48,7 +49,7 @@ const vacia = (): Ficha => ({ nombre: '', email: '', telefono: '', rol: 'Emplead
                   <strong>{{ e.nombre }} @if (e.idUsuario === auth.usuario()?.idUsuario) {<small class="tu">tú</small>}</strong>
                   <small class="cifra">{{ e.email }}{{ e.telefono ? ', tel. ' + e.telefono : '' }}</small>
                 </span>
-                <app-sello [variante]="e.rol === 'Admin' ? 'tinta' : 'aceptado'" [etiqueta]="e.rol === 'Admin' ? 'Administrador' : 'Empleado'" />
+                <app-sello [variante]="e.rolSistema ? 'tinta' : 'aceptado'" [etiqueta]="e.rol" />
                 @if (!e.estado) {
                   <app-sello variante="cancelado" etiqueta="Inactivo" />
                 } @else if (e.bloqueado_hasta) {
@@ -78,10 +79,15 @@ const vacia = (): Ficha => ({ nombre: '', email: '', telefono: '', rol: 'Emplead
             <label class="casilla"><span class="rotulo">Celular</span><input type="tel" name="telefono" [(ngModel)]="f.telefono" /></label>
             <label class="casilla">
               <span class="rotulo">Rol</span>
-              <select name="rol" [(ngModel)]="f.rol">
-                <option value="Empleado">Empleado (atiende pedidos)</option>
-                <option value="Admin">Administrador (ventas, productos y personal)</option>
+              <select name="rol" [(ngModel)]="f.idRol">
+                <option [ngValue]="null" disabled>Elige un rol</option>
+                @for (r of roles(); track r.idRol) {
+                  <option [ngValue]="r.idRol">{{ r.nombre }}</option>
+                }
               </select>
+              @if (rolElegido(); as r) {
+                <span class="ayuda-campo">{{ r.descripcion || 'Sin descripción.' }} <a routerLink="/gestion/roles">Ver roles</a></span>
+              }
             </label>
             <label class="casilla">
               <span class="rotulo">{{ editandoId() ? 'Nueva contraseña (opcional)' : 'Contraseña inicial' }}</span>
@@ -130,6 +136,7 @@ export class Personal {
   private readonly avisos = inject(AvisosService);
 
   protected readonly lista = signal<Empleado[]>([]);
+  protected readonly roles = signal<RolPersonal[]>([]);
   protected readonly error = signal('');
   protected readonly editando = signal(false);
   protected readonly editandoId = signal<number | null>(null);
@@ -147,7 +154,12 @@ export class Personal {
     this.cargar();
   }
 
+  protected rolElegido(): RolPersonal | undefined {
+    return this.roles().find((r) => r.idRol === this.f.idRol);
+  }
+
   private cargar(): void {
+    this.gestion.roles().subscribe({ next: (r) => this.roles.set(r), error: () => undefined });
     this.gestion.empleados().subscribe({
       next: (l) => this.lista.set(l),
       error: (e) => this.error.set(mensajeError(e)),
@@ -162,7 +174,7 @@ export class Personal {
   }
 
   protected editar(e: Empleado): void {
-    this.f = { nombre: e.nombre, email: e.email, telefono: e.telefono ?? '', rol: e.rol, estado: !!e.estado, password: '' };
+    this.f = { nombre: e.nombre, email: e.email, telefono: e.telefono ?? '', idRol: e.idRol, estado: !!e.estado, password: '' };
     this.editandoId.set(e.idUsuario);
     this.errorForm.set('');
     this.editando.set(true);
@@ -176,6 +188,7 @@ export class Personal {
   protected guardar(): void {
     const id = this.editandoId();
     if (this.f.nombre.trim().length < 3) return this.errorForm.set('Escribe el nombre completo.');
+    if (!this.f.idRol) return this.errorForm.set('Elige un rol para la cuenta.');
     if (!id && this.f.password.length < 6) return this.errorForm.set('La contraseña inicial debe tener al menos 6 caracteres.');
     this.guardando.set(true);
     const datos = { ...this.f, estado: this.f.estado ? 1 : 0, password: this.f.password || undefined };

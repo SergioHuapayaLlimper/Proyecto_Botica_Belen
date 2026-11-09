@@ -25,9 +25,17 @@ public class Usuario {
     @Column(name = "passwordHash", nullable = false)
     private String passwordHash;
 
-    /** ENUM('Admin', 'Empleado', 'Cliente') */
-    @Column(name = "rol", nullable = false)
-    private String rol = "Cliente";
+    /** Tipo de cuenta: ENUM('Personal', 'Cliente'). */
+    @Column(name = "tipo", nullable = false)
+    private String tipo = "Cliente";
+
+    /** Rol del personal (null en los clientes). */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "idRol")
+    private Rol rol;
+
+    @Column(name = "creadoEn", insertable = false, updatable = false)
+    private LocalDateTime creadoEn;
 
     @Column(name = "carrito_json", columnDefinition = "TEXT")
     private String carritoJson;
@@ -53,8 +61,29 @@ public class Usuario {
     public void setEmail(String email) { this.email = email; }
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
-    public String getRol() { return rol; }
-    public void setRol(String rol) { this.rol = rol; }
+    public String getTipo() { return tipo; }
+    public void setTipo(String tipo) { this.tipo = tipo; }
+    public Rol getRol() { return rol; }
+    public void setRol(Rol rol) { this.rol = rol; }
+    public LocalDateTime getCreadoEn() { return creadoEn; }
+
+    public boolean esCliente() {
+        return "Cliente".equals(tipo);
+    }
+
+    /** Nombre que se muestra: el del rol del personal, o "Cliente". */
+    public String nombreRol() {
+        return esCliente() || rol == null ? "Cliente" : rol.getNombre();
+    }
+
+    /** Permisos del panel (vacío para clientes). */
+    public java.util.List<String> permisos() {
+        return esCliente() || rol == null ? java.util.List.of() : rol.permisosEfectivos();
+    }
+
+    public boolean puede(String permiso) {
+        return permisos().contains(permiso);
+    }
     public String getCarritoJson() { return carritoJson; }
     public void setCarritoJson(String carritoJson) { this.carritoJson = carritoJson; }
     public Integer getEstado() { return estado; }

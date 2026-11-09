@@ -5,17 +5,17 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { mensajeError } from '../../core/interceptores';
 import { Icono } from '../../ui/icono';
+import { InfoRecojo } from '../../ui/info-recojo';
 
 @Component({
   selector: 'app-ingresar',
-  imports: [FormsModule, RouterLink, Icono],
+  imports: [FormsModule, RouterLink, Icono, InfoRecojo],
   template: `
     <div class="acceso">
       <section class="panel">
         <header class="encabezado">
-          <img src="img/logo-botica-belen-192.png" alt="" width="76" height="76" />
           <h1>Ingresa a tu cuenta</h1>
-          <p>Para confirmar reservas y ver su estado.</p>
+          <p>Para confirmar tus reservas y seguir su estado.</p>
         </header>
 
         <form (ngSubmit)="ingresar()" novalidate>
@@ -56,6 +56,7 @@ import { Icono } from '../../ui/icono';
 
         <p class="cambio">¿No tienes cuenta? <a routerLink="/registro" [queryParams]="{ volver: volver() ?? null }">Crea una aquí</a></p>
       </section>
+      <app-info-recojo />
     </div>
   `,
   styleUrl: './acceso.scss',

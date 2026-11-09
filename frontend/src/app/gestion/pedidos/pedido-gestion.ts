@@ -24,7 +24,7 @@ import { GestionService } from '../gestion.service';
           <aside class="hoja panel">
             <h2>Siguiente paso</h2>
             @if (!puedeActuar()) {
-              <p class="nota">Solo los empleados cambian el estado de los pedidos. Tu cuenta de administrador puede consultarlos.</p>
+              <p class="nota">Tu rol puede consultar este pedido, pero no cambiar su estado (falta el permiso «Atender pedidos»).</p>
             } @else if (avances().length === 0 && !anulables().length) {
               <p class="nota">Este pedido ya está cerrado: {{ p.estadoPedido.toLowerCase() }}.</p>
             } @else {
@@ -95,7 +95,7 @@ export class PedidoGestion implements OnInit {
   protected motivo = '';
   protected readonly accion = ACCION_ESTADO;
 
-  protected readonly puedeActuar = computed(() => this.auth.rol() === 'Empleado');
+  protected readonly puedeActuar = computed(() => this.auth.puede('pedidos_estado'));
   protected readonly avances = computed(() => (this.pedido()?.siguientes ?? []).filter((e) => e !== 'Cancelado' && e !== 'Rechazado'));
   protected readonly anulables = computed(() => (this.pedido()?.siguientes ?? []).filter((e) => e === 'Cancelado' || e === 'Rechazado'));
 

@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 import { AuthService } from '../core/auth.service';
+import { Permiso } from '../core/modelos';
 import { Icono } from '../ui/icono';
 import { GestionService } from './gestion.service';
 
@@ -10,8 +11,9 @@ interface Entrada {
   ruta: string;
   texto: string;
   icono: string;
-  soloAdmin?: boolean;
+  permisos: Permiso[]; // se muestra si el rol tiene alguno
   aviso?: boolean;
+  grupo?: string;
 }
 
 @Component({
@@ -26,15 +28,18 @@ export class GestionShell implements OnDestroy {
   protected readonly menuAbierto = signal(false);
 
   private readonly entradas: Entrada[] = [
-    { ruta: '/gestion/resumen', texto: 'Resumen', icono: 'grafico', soloAdmin: true },
-    { ruta: '/gestion/mostrador', texto: 'Mostrador', icono: 'mostrador', aviso: true },
-    { ruta: '/gestion/pedidos', texto: 'Pedidos', icono: 'lista' },
-    { ruta: '/gestion/productos', texto: 'Productos y stock', icono: 'caja' },
-    { ruta: '/gestion/reporte', texto: 'Reporte de ventas', icono: 'documento', soloAdmin: true },
-    { ruta: '/gestion/personal', texto: 'Personal', icono: 'personas', soloAdmin: true },
+    { ruta: '/gestion/resumen', texto: 'Resumen', icono: 'grafico', permisos: ['resumen'] },
+    { ruta: '/gestion/mostrador', texto: 'Mostrador', icono: 'mostrador', permisos: ['mostrador'], aviso: true },
+    { ruta: '/gestion/pedidos', texto: 'Pedidos', icono: 'lista', permisos: ['pedidos'] },
+    { ruta: '/gestion/productos', texto: 'Productos y stock', icono: 'caja', permisos: ['productos', 'productos_editar'] },
+    { ruta: '/gestion/categorias', texto: 'Categorías', icono: 'etiqueta', permisos: ['categorias'] },
+    { ruta: '/gestion/reporte', texto: 'Reporte de ventas', icono: 'documento', permisos: ['reporte'] },
+    { ruta: '/gestion/personal', texto: 'Personal', icono: 'personas', permisos: ['personal'], grupo: 'Organización' },
+    { ruta: '/gestion/roles', texto: 'Roles', icono: 'candado', permisos: ['personal'] },
   ];
 
-  protected readonly menu = computed(() => this.entradas.filter((e) => !e.soloAdmin || this.auth.esAdmin()));
+  // Solo las secciones que el rol puede usar.
+  protected readonly menu = computed(() => this.entradas.filter((e) => this.auth.puede(...e.permisos)));
 
   constructor() {
     this.gestion.vigilar();

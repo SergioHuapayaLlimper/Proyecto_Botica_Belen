@@ -8,7 +8,7 @@
   </header>
 
   @if (!puedeActuar()) {
-    <div class="aviso consulta"><app-icono nombre="info" [tam]="20" /><p>Vista de consulta: los estados de los pedidos los cambian los empleados en el mostrador.</p></div>
+    <div class="aviso consulta"><app-icono nombre="info" [tam]="20" /><p>Vista de consulta: tu rol no tiene el permiso «Atender pedidos», así que no puede cambiar su estado.</p></div>
   }
   @if (error()) {
     <div class="aviso aviso--error" role="alert"><app-icono nombre="alerta" [tam]="20" /><p>{{ error() }}</p></div>

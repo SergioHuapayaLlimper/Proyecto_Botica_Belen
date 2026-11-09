@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import pe.upn.boticabelen.dto.Respuestas.CategoriaDto;
 import pe.upn.boticabelen.dto.Respuestas.ProductoDto;
 import pe.upn.boticabelen.dto.Solicitudes.ProductoRequest;
 import pe.upn.boticabelen.entity.Categoria;
@@ -23,7 +22,6 @@ import pe.upn.boticabelen.util.Validador;
 @Service
 public class ProductoService {
 
-    private static final Pattern CODIGO = Pattern.compile("^[A-Z0-9-]+$");
     private static final Pattern URL = Pattern.compile("^https?://.*", Pattern.CASE_INSENSITIVE);
     private static final BigDecimal PRECIO_MAXIMO = new BigDecimal("100000");
 
@@ -45,11 +43,17 @@ public class ProductoService {
                 p.getEstadoProducto(), Boolean.TRUE.equals(p.getRequiereReceta()) ? 1 : 0, p.getImagenURL(), p.getUbicacionAnaquel());
     }
 
+    /** Siguiente código libre de una categoría: si existe CUI-0003, devuelve CUI-0004. */
+    public String siguienteCodigo(Categoria c) {
+        Number ultimo = productoRepository.ultimoNumero(c.getPrefijo());
+        return c.getPrefijo() + "-" + String.format("%04d", (ultimo == null ? 0 : ultimo.longValue()) + 1);
+    }
+
     @Transactional(readOnly = true)
-    public List<CategoriaDto> categorias() {
-        return categoriaRepository.findAllByOrderByNombreCategoriaAsc().stream()
-                .map(c -> new CategoriaDto(c.getIdCategoria(), c.getNombreCategoria(), c.getEstadoCategoria()))
-                .toList();
+    public String siguienteCodigo(String idCategoria) {
+        Categoria c = categoriaRepository.findById(Parametros.entero(idCategoria, 0))
+                .orElseThrow(() -> ApiException.notFound("Categoría no encontrada."));
+        return siguienteCodigo(c);
     }
 
     @Transactional(readOnly = true)
@@ -65,7 +69,7 @@ public class ProductoService {
     @Transactional
     public ProductoDto crear(ProductoRequest req) {
         Producto p = new Producto();
-        aplicar(p, req, 0);
+        aplicar(p, req);
         p.setStock(Validador.entero(req.stock() == null ? 0 : req.stock(), "Stock", 0, 100_000));
         return aDto(productoRepository.save(p));
     }
@@ -73,7 +77,7 @@ public class ProductoService {
     @Transactional
     public ProductoDto actualizar(String id, ProductoRequest req) {
         Producto p = buscar(Parametros.entero(id, 0));
-        aplicar(p, req, p.getIdProducto());
+        aplicar(p, req);
         return aDto(p);
     }
 
@@ -90,16 +94,16 @@ public class ProductoService {
         return productoRepository.findById(id).orElseThrow(() -> ApiException.notFound("Producto no encontrado."));
     }
 
-    /** Valida los datos del formulario y los copia a la entidad (mismas reglas que la versión Node). */
-    private void aplicar(Producto p, ProductoRequest req, int idActual) {
-        String codigo = Validador.texto(req.codigoProducto(), "Código", 3, 20).toUpperCase();
-        if (!CODIGO.matcher(codigo).matches()) throw ApiException.badRequest("El código solo admite letras, números y guiones.");
-        if (productoRepository.existsByCodigoProductoAndIdProductoNot(codigo, idActual)) {
-            throw ApiException.conflict("Ya existe un producto con el código " + codigo + ".");
-        }
-
+    /**
+     * Valida los datos del formulario y los copia a la entidad.
+     * El código NO lo escribe el usuario: se genera con el prefijo de la categoría (CUI-0004).
+     * Si un producto cambia de categoría, recibe el siguiente código de la nueva.
+     */
+    private void aplicar(Producto p, ProductoRequest req) {
         int idCategoria = Validador.entero(req.idCategoria(), "Categoría", 1, 1_000_000);
         Categoria categoria = categoriaRepository.findById(idCategoria).orElseThrow(() -> ApiException.badRequest("La categoría no existe."));
+        boolean cambiaCategoria = p.getCategoria() == null || !p.getCategoria().getIdCategoria().equals(categoria.getIdCategoria());
+        if (cambiaCategoria) p.setCodigoProducto(siguienteCodigo(categoria));
 
         BigDecimal precio = req.precioProducto();
         if (precio == null || precio.signum() <= 0 || precio.compareTo(PRECIO_MAXIMO) >= 0) {
@@ -110,7 +114,6 @@ public class ProductoService {
             throw ApiException.badRequest("La imagen debe ser una URL que empiece con http:// o https://");
         }
 
-        p.setCodigoProducto(codigo);
         p.setNombreProducto(Validador.texto(req.nombreProducto(), "Nombre", 3, 100));
         p.setPrincipioActivo(Validador.opcional(req.principioActivo(), "Principio activo", 100));
         p.setDescripcionProducto(Validador.opcional(req.descripcionProducto(), "Descripción", 2000));

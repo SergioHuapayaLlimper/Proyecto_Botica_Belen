@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { conRol, soloInvitados } from './core/guards';
+import { conPermiso, conSesion, soloClientes, soloInvitados } from './core/guards';
 import { PortalShell } from './portal/portal-shell';
 
 export const routes: Routes = [
@@ -13,7 +13,7 @@ export const routes: Routes = [
       {
         path: 'reserva/confirmada/:id',
         title: 'Reserva registrada – Botica Belén',
-        canActivate: [conRol('Cliente')],
+        canActivate: [soloClientes],
         data: { confirmada: true },
         loadComponent: () => import('./portal/mis-reservas/detalle-reserva').then((m) => m.DetalleReserva),
       },
@@ -22,48 +22,50 @@ export const routes: Routes = [
       {
         path: 'mis-reservas',
         title: 'Mis reservas – Botica Belén',
-        canActivate: [conRol('Cliente')],
+        canActivate: [soloClientes],
         loadComponent: () => import('./portal/mis-reservas/mis-reservas').then((m) => m.MisReservas),
       },
       {
         path: 'mis-reservas/:id',
         title: 'Detalle de reserva – Botica Belén',
-        canActivate: [conRol('Cliente')],
+        canActivate: [soloClientes],
         loadComponent: () => import('./portal/mis-reservas/detalle-reserva').then((m) => m.DetalleReserva),
       },
       {
         path: 'mi-cuenta',
         title: 'Mi cuenta – Botica Belén',
-        canActivate: [conRol('Cliente', 'Admin', 'Empleado')],
+        canActivate: [conSesion],
         loadComponent: () => import('./portal/mi-cuenta/mi-cuenta').then((m) => m.MiCuenta),
       },
     ],
   },
   {
     path: 'gestion',
-    canActivate: [conRol('Admin', 'Empleado')],
+    canActivate: [conPermiso()],
     loadComponent: () => import('./gestion/gestion-shell').then((m) => m.GestionShell),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'mostrador' },
-      { path: 'mostrador', title: 'Mostrador – Gestión Botica Belén', loadComponent: () => import('./gestion/mostrador/mostrador').then((m) => m.Mostrador) },
-      { path: 'pedidos', title: 'Pedidos – Gestión Botica Belén', loadComponent: () => import('./gestion/pedidos/pedidos').then((m) => m.Pedidos) },
-      { path: 'pedidos/:id', title: 'Pedido – Gestión Botica Belén', loadComponent: () => import('./gestion/pedidos/pedido-gestion').then((m) => m.PedidoGestion) },
-      { path: 'productos', title: 'Productos y stock – Gestión Botica Belén', loadComponent: () => import('./gestion/productos/productos').then((m) => m.Productos) },
+      { path: 'mostrador', title: 'Mostrador – Gestión Botica Belén', canActivate: [conPermiso('mostrador')], loadComponent: () => import('./gestion/mostrador/mostrador').then((m) => m.Mostrador) },
+      { path: 'pedidos', title: 'Pedidos – Gestión Botica Belén', canActivate: [conPermiso('pedidos')], loadComponent: () => import('./gestion/pedidos/pedidos').then((m) => m.Pedidos) },
+      { path: 'pedidos/:id', title: 'Pedido – Gestión Botica Belén', canActivate: [conPermiso('pedidos', 'mostrador')], loadComponent: () => import('./gestion/pedidos/pedido-gestion').then((m) => m.PedidoGestion) },
+      { path: 'productos', title: 'Productos y stock – Gestión Botica Belén', canActivate: [conPermiso('productos', 'productos_editar')], loadComponent: () => import('./gestion/productos/productos').then((m) => m.Productos) },
       {
         path: 'productos/nuevo',
         title: 'Nuevo producto – Gestión Botica Belén',
-        canActivate: [conRol('Admin')],
+        canActivate: [conPermiso('productos_editar')],
         loadComponent: () => import('./gestion/productos/producto-form').then((m) => m.ProductoForm),
       },
       {
         path: 'productos/:id',
         title: 'Editar producto – Gestión Botica Belén',
-        canActivate: [conRol('Admin')],
+        canActivate: [conPermiso('productos_editar')],
         loadComponent: () => import('./gestion/productos/producto-form').then((m) => m.ProductoForm),
       },
-      { path: 'resumen', title: 'Resumen – Gestión Botica Belén', canActivate: [conRol('Admin')], loadComponent: () => import('./gestion/resumen/resumen').then((m) => m.Resumen) },
-      { path: 'reporte', title: 'Reporte de ventas – Gestión Botica Belén', canActivate: [conRol('Admin')], loadComponent: () => import('./gestion/reporte/reporte').then((m) => m.Reporte) },
-      { path: 'personal', title: 'Personal – Gestión Botica Belén', canActivate: [conRol('Admin')], loadComponent: () => import('./gestion/personal/personal').then((m) => m.Personal) },
+      { path: 'categorias', title: 'Categorías – Gestión Botica Belén', canActivate: [conPermiso('categorias')], loadComponent: () => import('./gestion/categorias/categorias').then((m) => m.Categorias) },
+      { path: 'resumen', title: 'Resumen – Gestión Botica Belén', canActivate: [conPermiso('resumen')], loadComponent: () => import('./gestion/resumen/resumen').then((m) => m.Resumen) },
+      { path: 'reporte', title: 'Reporte de ventas – Gestión Botica Belén', canActivate: [conPermiso('reporte')], loadComponent: () => import('./gestion/reporte/reporte').then((m) => m.Reporte) },
+      { path: 'personal', title: 'Personal – Gestión Botica Belén', canActivate: [conPermiso('personal')], loadComponent: () => import('./gestion/personal/personal').then((m) => m.Personal) },
+      { path: 'roles', title: 'Roles – Gestión Botica Belén', canActivate: [conPermiso('personal')], loadComponent: () => import('./gestion/roles/roles').then((m) => m.Roles) },
     ],
   },
   { path: '**', redirectTo: '' },

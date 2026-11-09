@@ -7,4 +7,8 @@ import pe.upn.boticabelen.entity.Categoria;
 public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
 
     List<Categoria> findAllByOrderByNombreCategoriaAsc();
+
+    boolean existsByNombreCategoriaIgnoreCaseAndIdCategoriaNot(String nombre, Integer idCategoria);
+
+    boolean existsByPrefijoAndIdCategoriaNot(String prefijo, Integer idCategoria);
 }

@@ -13,9 +13,10 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     boolean existsByEmailAndIdUsuarioNot(String email, Integer idUsuario);
 
-    List<Usuario> findByRolInOrderByRolAscNombreAsc(List<String> roles);
+    /** Cuentas del personal ordenadas por rol y nombre. */
+    List<Usuario> findByTipoOrderByRolNombreAscNombreAsc(String tipo);
 
-    Optional<Usuario> findByIdUsuarioAndRolIn(Integer idUsuario, List<String> roles);
+    Optional<Usuario> findByIdUsuarioAndTipo(Integer idUsuario, String tipo);
 
-    long countByRol(String rol);
+    long countByRolIdRol(Integer idRol);
 }

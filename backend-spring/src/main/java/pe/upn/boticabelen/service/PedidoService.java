@@ -24,6 +24,7 @@ import pe.upn.boticabelen.repository.PedidoConsultaRepository;
 import pe.upn.boticabelen.repository.PedidoRepository;
 import pe.upn.boticabelen.repository.ProductoRepository;
 import pe.upn.boticabelen.repository.UsuarioRepository;
+import pe.upn.boticabelen.seguridad.Permisos;
 import pe.upn.boticabelen.util.Negocio;
 import pe.upn.boticabelen.util.Parametros;
 import pe.upn.boticabelen.util.Validador;
@@ -123,8 +124,11 @@ public class PedidoService {
     @Transactional(readOnly = true)
     public PedidoDetalleDto detalle(String id, Usuario usuario) {
         PedidoDetalleDto pedido = consultas.detalle(Parametros.entero(id, 0)).orElse(null);
-        if (pedido == null || ("Cliente".equals(usuario.getRol()) && !pedido.idUsuario().equals(usuario.getIdUsuario()))) {
+        if (pedido == null || (usuario.esCliente() && !pedido.idUsuario().equals(usuario.getIdUsuario()))) {
             throw ApiException.notFound("Pedido no encontrado.");
+        }
+        if (!usuario.esCliente() && !usuario.puede(Permisos.PEDIDOS) && !usuario.puede(Permisos.MOSTRADOR)) {
+            throw ApiException.forbidden("Tu rol no tiene permiso para ver pedidos.");
         }
         return pedido;
     }

@@ -1,34 +1,27 @@
+// Pantallas de acceso: formulario a la izquierda y, al lado, la información de recojo.
 .acceso {
   display: grid;
-  place-items: start center;
-  padding: var(--e7) var(--e4) var(--e8);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  width: min(980px, 100% - 32px);
+  margin: var(--e7) auto var(--e8);
+  overflow: hidden;
+  background: var(--papel);
+  border: 1px solid var(--rayado);
+  border-radius: var(--radio-hoja);
 }
 
 .panel {
-  width: min(460px, 100%);
-  padding: var(--e6);
-  background:
-    repeating-linear-gradient(0deg, transparent 0 31px, rgb(31 108 176 / 0.05) 31px 32px),
-    var(--papel);
-  border: 1px solid var(--rayado);
-  border-radius: var(--radio);
-  box-shadow: var(--sombra-suave);
+  padding: var(--e7) var(--e7) var(--e6);
 }
 
 .encabezado {
   display: grid;
   gap: var(--e2);
-  justify-items: center;
-  margin-bottom: var(--e5);
-  text-align: center;
-
-  img {
-    width: 76px;
-    height: 76px;
-  }
+  margin-bottom: var(--e6);
 
   h1 {
-    font-size: var(--t-grande);
+    font-size: 2.5rem;
+    line-height: 1;
   }
 
   p {
@@ -38,27 +31,38 @@
 
 form {
   display: grid;
-  gap: var(--e3);
+  gap: var(--e4);
 }
 
+.dos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e4);
+}
+
+// Contraseña con botón para mostrarla, dentro del mismo campo.
 .con-ojo {
-  display: flex;
-  align-items: center;
+  position: relative;
+  display: block;
 
   input {
-    flex: 1;
+    padding-right: 52px;
   }
 
   button {
+    position: absolute;
+    top: 50%;
+    right: 6px;
     display: grid;
     place-items: center;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     color: var(--texto-2);
     cursor: pointer;
     background: none;
     border: 0;
     border-radius: var(--radio);
+    transform: translateY(-50%);
 
     &:hover {
       color: var(--tinta);
@@ -73,17 +77,26 @@ form {
 
 .cambio {
   margin-top: var(--e5);
-  padding-top: var(--e4);
-  text-align: center;
   color: var(--texto-2);
-  border-top: 1px solid var(--rayado);
 }
-@media (max-width: 520px) {
+
+@media (max-width: 860px) {
   .acceso {
-    padding-top: var(--e5);
+    grid-template-columns: 1fr;
+    margin-top: var(--e5);
   }
 
+  app-info-recojo {
+    padding: var(--e5) var(--e4);
+  }
+}
+
+@media (max-width: 520px) {
   .panel {
     padding: var(--e5) var(--e4);
+  }
+
+  .dos {
+    grid-template-columns: 1fr;
   }
 }

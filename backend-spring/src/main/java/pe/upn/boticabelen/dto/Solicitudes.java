@@ -39,5 +39,9 @@ public final class Solicitudes {
 
     public record StockRequest(Integer stock) {}
 
-    public record EmpleadoRequest(String nombre, String email, String telefono, String rol, Integer estado, String password) {}
+    public record CategoriaRequest(String nombreCategoria, String prefijo, String estadoCategoria) {}
+
+    public record EmpleadoRequest(String nombre, String email, String telefono, Integer idRol, Integer estado, String password) {}
+
+    public record RolRequest(String nombre, String descripcion, List<String> permisos) {}
 }

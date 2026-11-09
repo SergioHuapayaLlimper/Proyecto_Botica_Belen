@@ -30,7 +30,7 @@ public class JwtService {
         Date ahora = new Date();
         return Jwts.builder()
                 .claim("id", usuario.getIdUsuario())
-                .claim("rol", usuario.getRol())
+                .claim("tipo", usuario.getTipo())
                 .issuedAt(ahora)
                 .expiration(new Date(ahora.getTime() + vigencia.toMillis()))
                 .signWith(clave)

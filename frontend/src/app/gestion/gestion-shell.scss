@@ -307,3 +307,10 @@ main {
     }
   }
 }
+
+// Separador del grupo "Organización" en el menú.
+.grupo {
+  margin: var(--e4) var(--e3) var(--e1);
+  font-size: var(--t-chico);
+  color: #9fbbe0;
+}

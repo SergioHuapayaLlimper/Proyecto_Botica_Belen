@@ -32,7 +32,7 @@ public class AuthService {
     }
 
     public static UsuarioDto aDto(Usuario u) {
-        return new UsuarioDto(u.getIdUsuario(), u.getNombre(), u.getEmail(), u.getTelefono(), u.getRol());
+        return new UsuarioDto(u.getIdUsuario(), u.getNombre(), u.getEmail(), u.getTelefono(), u.nombreRol(), u.getTipo(), u.permisos());
     }
 
     private SesionDto sesion(Usuario u) {
@@ -108,7 +108,7 @@ public class AuthService {
     public SesionDto registrar(RegistroRequest req) {
         String nombre = Validador.texto(req.nombre(), "Nombre", 3, 100);
         String correo = Validador.email(req.email());
-        String telefono = Validador.telefono(req.telefono());
+        String telefono = Validador.celular(req.telefono()); // obligatorio para clientes
         String clave = Validador.password(req.password());
 
         if (usuarioRepository.existsByEmail(correo)) throw ApiException.conflict("Ya existe una cuenta con ese correo.");
@@ -118,19 +118,20 @@ public class AuthService {
         u.setEmail(correo);
         u.setTelefono(telefono);
         u.setPasswordHash(passwordService.hash(clave));
-        u.setRol("Cliente");
+        u.setTipo("Cliente");
         u.setEstado(1);
         return sesion(usuarioRepository.save(u));
     }
 
     @Transactional
     public UsuarioDto actualizarPerfil(Integer idUsuario, PerfilRequest req) {
+        Usuario u = usuarioRepository.findById(idUsuario).orElseThrow(() -> ApiException.notFound("Usuario no encontrado."));
         String nombre = Validador.texto(req.nombre(), "Nombre", 3, 100);
         String correo = Validador.email(req.email());
-        String telefono = Validador.telefono(req.telefono());
+        // Los clientes deben tener celular (para coordinar el recojo); para el personal sigue siendo opcional.
+        String telefono = u.esCliente() ? Validador.celular(req.telefono()) : Validador.telefono(req.telefono());
         if (usuarioRepository.existsByEmailAndIdUsuarioNot(correo, idUsuario)) throw ApiException.conflict("Otro usuario ya usa ese correo.");
 
-        Usuario u = usuarioRepository.findById(idUsuario).orElseThrow(() -> ApiException.notFound("Usuario no encontrado."));
         u.setNombre(nombre);
         u.setEmail(correo);
         u.setTelefono(telefono);

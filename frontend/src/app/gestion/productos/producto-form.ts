@@ -45,12 +45,16 @@ interface Formulario {
           </div>
 
           <div class="rejilla">
-            <label class="casilla"><span class="rotulo">Código</span><input name="codigo" [(ngModel)]="f.codigoProducto" maxlength="20" placeholder="MED-0201" required /></label>
+            <div class="casilla">
+              <span class="rotulo">Código</span>
+              <output class="codigo cifra" aria-live="polite">{{ codigoMostrado() }}</output>
+              <span class="ayuda-campo">{{ ayudaCodigo() }}</span>
+            </div>
             <label class="casilla ancho"><span class="rotulo">Nombre y presentación</span><input name="nombre" [(ngModel)]="f.nombreProducto" maxlength="100" placeholder="Panadol 500mg (Caja x 100 tab)" required /></label>
             <label class="casilla ancho"><span class="rotulo">Principio activo (opcional)</span><input name="principio" [(ngModel)]="f.principioActivo" maxlength="100" placeholder="Paracetamol" /></label>
             <label class="casilla">
               <span class="rotulo">Categoría</span>
-              <select name="categoria" [(ngModel)]="f.idCategoria">
+              <select name="categoria" [(ngModel)]="f.idCategoria" (ngModelChange)="cambiarCategoria($event)">
                 @for (c of categorias(); track c.idCategoria) {
                   <option [ngValue]="c.idCategoria">{{ c.nombreCategoria }}</option>
                 }
@@ -102,6 +106,12 @@ interface Formulario {
     .receta span { display: grid; }
     .receta small { font-size: var(--t-chico); color: var(--texto-2); }
     .botones { display: flex; gap: var(--e3); justify-content: flex-end; }
+    /* Código generado: se muestra como una etiqueta, no como un campo editable. */
+    .codigo {
+      display: flex; align-items: center; min-height: 48px; padding: 0 14px;
+      font-size: 1.25rem; font-weight: 800; font-stretch: 72%; color: var(--tinta);
+      background: var(--velo); border: 1px dashed var(--rayado-fuerte); border-radius: var(--radio);
+    }
     .cargando { padding: var(--e7); text-align: center; color: var(--texto-2); }
     @media (max-width: 640px) { .rejilla { grid-template-columns: 1fr; } .formulario { padding: var(--e4); } }
   `,
@@ -116,6 +126,28 @@ export class ProductoForm implements OnInit {
   protected readonly cargado = signal(false);
   protected readonly guardando = signal(false);
   protected readonly error = signal('');
+
+  // ---- Código automático: prefijo de la categoría + correlativo (CUI-0004) ----
+  private codigoOriginal = '';
+  private categoriaOriginal: number | null = null;
+  protected readonly codigoNuevo = signal('');
+
+  protected codigoMostrado(): string {
+    if (this.id() && this.f.idCategoria === this.categoriaOriginal) return this.codigoOriginal;
+    return this.codigoNuevo() || '…';
+  }
+
+  protected ayudaCodigo(): string {
+    if (!this.id()) return 'Se genera solo según la categoría.';
+    if (this.f.idCategoria === this.categoriaOriginal) return 'Cambia solo si eliges otra categoría.';
+    return `Al guardar pasará de ${this.codigoOriginal} a ${this.codigoNuevo() || 'un código de la nueva categoría'}.`;
+  }
+
+  protected cambiarCategoria(idCategoria: number): void {
+    this.codigoNuevo.set('');
+    if (!idCategoria || (this.id() && idCategoria === this.categoriaOriginal)) return;
+    this.gestion.siguienteCodigo(idCategoria).subscribe({ next: (r) => this.codigoNuevo.set(r.codigo), error: () => undefined });
+  }
 
   protected f: Formulario = {
     codigoProducto: '',
@@ -134,6 +166,7 @@ export class ProductoForm implements OnInit {
   ngOnInit(): void {
     const id = this.id();
     if (!id) {
+      this.cambiarCategoria(this.f.idCategoria);
       this.cargado.set(true);
       return;
     }
@@ -152,6 +185,8 @@ export class ProductoForm implements OnInit {
           imagenURL: p.imagenURL ?? '',
           descripcionProducto: p.descripcionProducto ?? '',
         };
+        this.codigoOriginal = p.codigoProducto;
+        this.categoriaOriginal = p.idCategoria;
         this.cargado.set(true);
       },
       error: (e) => {
@@ -163,8 +198,8 @@ export class ProductoForm implements OnInit {
 
   protected guardar(): void {
     this.error.set('');
-    if (!this.f.codigoProducto.trim() || this.f.nombreProducto.trim().length < 3 || !(Number(this.f.precioProducto) > 0)) {
-      this.error.set('Completa el código, el nombre (mínimo 3 letras) y un precio mayor a 0.');
+    if (this.f.nombreProducto.trim().length < 3 || !(Number(this.f.precioProducto) > 0)) {
+      this.error.set('Completa el nombre (mínimo 3 letras) y un precio mayor a 0.');
       return;
     }
     this.guardando.set(true);

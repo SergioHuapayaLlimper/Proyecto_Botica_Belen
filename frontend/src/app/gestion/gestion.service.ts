@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API, Categoria, Dashboard, Empleado, EstadoPedido, LineaPreparar, Pedido, PedidoResumen, Producto, Reporte } from '../core/modelos';
+import { API, Categoria, Dashboard, Empleado, EstadoPedido, LineaPreparar, Pedido, PedidoResumen, PermisoInfo, Producto, Reporte, RolPersonal } from '../core/modelos';
 import { AvisosService } from '../core/avisos.service';
 
 const parametros = (filtros: Record<string, string | number | null | undefined>) => {
@@ -74,6 +74,19 @@ export class GestionService {
     return this.http.get<Categoria[]>(`${API}/gestion/categorias`);
   }
 
+  guardarCategoria(datos: { nombreCategoria: string; prefijo: string; estadoCategoria: string }, id?: number): Observable<Categoria> {
+    return id ? this.http.put<Categoria>(`${API}/gestion/categorias/${id}`, datos) : this.http.post<Categoria>(`${API}/gestion/categorias`, datos);
+  }
+
+  eliminarCategoria(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/gestion/categorias/${id}`);
+  }
+
+  // Código que recibirá el próximo producto de la categoría (CUI-0004).
+  siguienteCodigo(idCategoria: number): Observable<{ codigo: string }> {
+    return this.http.get<{ codigo: string }>(`${API}/gestion/categorias/${idCategoria}/siguiente-codigo`);
+  }
+
   productos(filtros: Record<string, string | number | null>): Observable<Producto[]> {
     return this.http.get<Producto[]>(`${API}/gestion/productos`, { params: parametros(filtros) });
   }
@@ -101,6 +114,23 @@ export class GestionService {
 
   eliminarEmpleado(id: number): Observable<void> {
     return this.http.delete<void>(`${API}/gestion/empleados/${id}`);
+  }
+
+  // ---- Roles ----
+  roles(): Observable<RolPersonal[]> {
+    return this.http.get<RolPersonal[]>(`${API}/gestion/roles`);
+  }
+
+  catalogoPermisos(): Observable<PermisoInfo[]> {
+    return this.http.get<PermisoInfo[]>(`${API}/gestion/roles/permisos`);
+  }
+
+  guardarRol(datos: { nombre: string; descripcion: string; permisos: string[] }, id?: number): Observable<RolPersonal> {
+    return id ? this.http.put<RolPersonal>(`${API}/gestion/roles/${id}`, datos) : this.http.post<RolPersonal>(`${API}/gestion/roles`, datos);
+  }
+
+  eliminarRol(id: number): Observable<void> {
+    return this.http.delete<void>(`${API}/gestion/roles/${id}`);
   }
 
   // ---- Resumen y reporte ----

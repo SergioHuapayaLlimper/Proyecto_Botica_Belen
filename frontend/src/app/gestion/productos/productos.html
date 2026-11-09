@@ -3,14 +3,14 @@
     <div>
       <h1>Productos y stock</h1>
       <p>
-        @if (auth.esAdmin()) {
+        @if (auth.puede('productos_editar')) {
           Ajusta el stock después del inventario físico o edita los datos del producto.
         } @else {
-          Consulta precio, stock y ubicación en anaquel. Los cambios los hace el administrador.
+          Consulta precio, stock y ubicación en anaquel. Para hacer cambios se necesita el permiso «Editar productos».
         }
       </p>
     </div>
-    @if (auth.esAdmin()) {
+    @if (auth.puede('productos_editar')) {
       <a routerLink="/gestion/productos/nuevo" class="btn btn--tinta"><app-icono nombre="mas" [tam]="18" /> Nuevo producto</a>
     }
   </header>
@@ -70,7 +70,7 @@
               <th scope="col" class="derecha">Precio</th>
               <th scope="col" class="derecha">Stock</th>
               <th scope="col">Estado</th>
-              @if (auth.esAdmin()) {
+              @if (auth.puede('productos_editar')) {
                 <th scope="col"><span class="visualmente-oculto">Editar</span></th>
               }
             </tr>
@@ -91,7 +91,7 @@
                 <td class="cifra anaquel">{{ p.ubicacionAnaquel || '—' }}</td>
                 <td class="derecha cifra">{{ soles(p.precioProducto) }}</td>
                 <td class="derecha">
-                  @if (auth.esAdmin()) {
+                  @if (auth.puede('productos_editar')) {
                     <span class="stock-edit">
                       <input
                         type="number"
@@ -122,7 +122,7 @@
                     <app-sello variante="listo" etiqueta="Activo" />
                   }
                 </td>
-                @if (auth.esAdmin()) {
+                @if (auth.puede('productos_editar')) {
                   <td class="derecha">
                     <a [routerLink]="['/gestion/productos', p.idProducto]" class="btn btn--chico btn--texto" [attr.aria-label]="'Editar ' + p.nombreProducto"><app-icono nombre="editar" [tam]="16" /> Editar</a>
                   </td>

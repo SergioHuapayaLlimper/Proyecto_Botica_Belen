@@ -2,7 +2,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
-import { API, Sesion, Usuario } from './modelos';
+import { API, Permiso, Sesion, Usuario } from './modelos';
 
 const CLAVE = 'botica-belen-sesion';
 
@@ -23,9 +23,31 @@ export class AuthService {
   readonly usuario = computed(() => this.sesion()?.usuario ?? null);
   readonly token = computed(() => this.sesion()?.token ?? null);
   readonly rol = computed(() => this.usuario()?.rol ?? null);
-  readonly esCliente = computed(() => this.rol() === 'Cliente');
-  readonly esPersonal = computed(() => this.rol() === 'Admin' || this.rol() === 'Empleado');
-  readonly esAdmin = computed(() => this.rol() === 'Admin');
+  readonly esCliente = computed(() => this.usuario()?.tipo === 'Cliente');
+  readonly esPersonal = computed(() => this.usuario()?.tipo === 'Personal');
+  readonly permisos = computed(() => new Set<Permiso>(this.usuario()?.permisos ?? []));
+
+  constructor() {
+    // Al abrir la app se refrescan los datos de la sesión guardada (rol y permisos pueden haber cambiado).
+    // Se difiere: el interceptor HTTP usa este mismo servicio y aún se está construyendo.
+    if (this.token()) setTimeout(() => this.refrescar());
+  }
+
+  private refrescar(): void {
+    this.http.get<Usuario>(`${API}/auth/me`).subscribe({
+      next: (usuario) => {
+        const sesion = this.sesion();
+        if (sesion) this.guardar({ ...sesion, usuario });
+      },
+      error: () => undefined, // un 401 ya cierra la sesión en el interceptor
+    });
+  }
+
+  /** ¿El rol del usuario tiene alguno de estos permisos? */
+  puede(...permisos: Permiso[]): boolean {
+    const mios = this.permisos();
+    return permisos.some((p) => mios.has(p));
+  }
 
   // Primer nombre para saludar ("Juan Pérez" → "Juan").
   readonly nombreCorto = computed(() => this.usuario()?.nombre.split(' ')[0] ?? '');
@@ -61,16 +83,19 @@ export class AuthService {
     this.router.navigateByUrl(destino);
   }
 
-  // A dónde ir después de iniciar sesión según el rol.
+  // A dónde ir después de iniciar sesión: el cliente al catálogo; el personal a la primera sección que puede usar.
   inicioSegunRol(): string {
-    switch (this.rol()) {
-      case 'Admin':
-        return '/gestion/resumen';
-      case 'Empleado':
-        return '/gestion/mostrador';
-      default:
-        return '/';
-    }
+    if (!this.esPersonal()) return '/';
+    const secciones: [Permiso[], string][] = [
+      [['resumen'], '/gestion/resumen'],
+      [['mostrador'], '/gestion/mostrador'],
+      [['pedidos'], '/gestion/pedidos'],
+      [['productos', 'productos_editar'], '/gestion/productos'],
+      [['categorias'], '/gestion/categorias'],
+      [['reporte'], '/gestion/reporte'],
+      [['personal'], '/gestion/personal'],
+    ];
+    return secciones.find(([permisos]) => this.puede(...permisos))?.[1] ?? '/';
   }
 
   private guardar(sesion: Sesion): void {

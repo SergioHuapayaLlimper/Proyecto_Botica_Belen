@@ -1,8 +1,11 @@
 package pe.upn.boticabelen.config;
 
+import java.text.Normalizer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -146,6 +149,93 @@ public class MigracionesBd implements ApplicationRunner {
                 // 2. Se borran los demás productos.
                 int borrados = bd.update("DELETE FROM producto WHERE codigoProducto NOT IN (" + en + ")", codigos);
                 log.info("Catálogo reducido: {} productos borrados.", borrados);
+            }),
+
+            new Migracion("004_roles_y_permisos", "Roles del personal con permisos por sección (como en Pastelería Web)", bd -> {
+                // 1. Tabla de roles
+                if (!existeTabla("rol")) {
+                    bd.execute("""
+                            CREATE TABLE rol (
+                              idRol INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                              nombre VARCHAR(40) NOT NULL,
+                              descripcion VARCHAR(150) NULL,
+                              permisos JSON NOT NULL,
+                              esSistema TINYINT(1) NOT NULL DEFAULT 0,
+                              creadoEn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              UNIQUE KEY uk_rol_nombre (nombre)
+                            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci""");
+                }
+                bd.update("""
+                        INSERT IGNORE INTO rol (idRol, nombre, descripcion, permisos, esSistema) VALUES
+                        (1, 'Administrador', 'Acceso total al panel. Es el rol del sistema y no se puede modificar.',
+                            JSON_ARRAY('resumen','mostrador','pedidos','pedidos_estado','productos','productos_editar','reporte','personal'), 1),
+                        (2, 'Empleado', 'Atiende el mostrador y los pedidos, y consulta el stock.',
+                            JSON_ARRAY('mostrador','pedidos','pedidos_estado','productos'), 0),
+                        (3, 'Contador', 'Revisa las ventas y exporta el reporte.',
+                            JSON_ARRAY('resumen','pedidos','reporte'), 0)""");
+
+                // 2. Nuevas columnas en usuario
+                if (!existeColumna("usuario", "idRol")) {
+                    String despues = existeColumna("usuario", "rol") ? "rol" : "tipo";
+                    bd.execute("ALTER TABLE usuario ADD COLUMN idRol INT NULL AFTER " + despues);
+                }
+                if (!existeColumna("usuario", "creadoEn")) {
+                    bd.execute("ALTER TABLE usuario ADD COLUMN creadoEn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
+                }
+
+                // 3. El rol en texto (Admin/Empleado/Cliente) pasa a: tipo de cuenta (Personal/Cliente) + idRol
+                if (existeColumna("usuario", "rol")) {
+                    bd.execute("ALTER TABLE usuario MODIFY rol ENUM('Admin','Empleado','Cliente','Personal') NOT NULL DEFAULT 'Cliente'");
+                    bd.update("UPDATE usuario SET idRol = 1 WHERE rol = 'Admin' AND idRol IS NULL");
+                    bd.update("UPDATE usuario SET idRol = 2 WHERE rol = 'Empleado' AND idRol IS NULL");
+                    bd.update("UPDATE usuario SET rol = 'Personal' WHERE rol IN ('Admin','Empleado')");
+                    bd.execute("ALTER TABLE usuario CHANGE rol tipo ENUM('Personal','Cliente') NOT NULL DEFAULT 'Cliente'");
+                }
+                bd.update("UPDATE usuario SET idRol = 2 WHERE tipo = 'Personal' AND idRol IS NULL");
+                bd.update("UPDATE usuario SET idRol = NULL WHERE tipo = 'Cliente'");
+
+                if (!existeRestriccion("usuario", "fk_usuario_rol")) {
+                    bd.execute("ALTER TABLE usuario ADD CONSTRAINT fk_usuario_rol FOREIGN KEY (idRol) REFERENCES rol (idRol)");
+                }
+            }),
+
+            new Migracion("005_prefijo_y_codigos", "Prefijo de código por categoría y códigos de producto correlativos", bd -> {
+                // 1. Prefijo de cada categoría: el que ya usan sus productos (CUI-0039 → CUI) o, si no tiene, el de su nombre.
+                if (!existeColumna("categoria", "prefijo")) {
+                    bd.execute("ALTER TABLE categoria ADD COLUMN prefijo VARCHAR(5) NULL AFTER nombreCategoria");
+                }
+                bd.update("""
+                        UPDATE categoria c
+                        SET c.prefijo = (SELECT UPPER(SUBSTRING_INDEX(MIN(p.codigoProducto), '-', 1))
+                                         FROM producto p WHERE p.idCategoria = c.idCategoria)
+                        WHERE c.prefijo IS NULL""");
+                Set<String> usados = new HashSet<>(bd.queryForList("SELECT prefijo FROM categoria WHERE prefijo IS NOT NULL", String.class));
+                for (var fila : bd.queryForList("SELECT idCategoria, nombreCategoria FROM categoria WHERE prefijo IS NULL")) {
+                    String base = Normalizer.normalize(String.valueOf(fila.get("nombreCategoria")), Normalizer.Form.NFD)
+                            .replaceAll("[^A-Za-z]", "").toUpperCase();
+                    String prefijo = (base + "XXX").substring(0, 3);
+                    for (int i = 0; usados.contains(prefijo); i++) prefijo = prefijo.substring(0, 2) + (char) ('A' + i);
+                    usados.add(prefijo);
+                    bd.update("UPDATE categoria SET prefijo = ? WHERE idCategoria = ?", prefijo, fila.get("idCategoria"));
+                }
+                bd.execute("ALTER TABLE categoria MODIFY prefijo VARCHAR(5) NOT NULL");
+                if (!existeRestriccion("categoria", "uk_categoria_prefijo")) {
+                    bd.execute("ALTER TABLE categoria ADD CONSTRAINT uk_categoria_prefijo UNIQUE (prefijo)");
+                }
+
+                // 2. Códigos correlativos por categoría, en el orden en que se registraron los productos.
+                //    Primero códigos temporales para no chocar con la restricción UNIQUE.
+                bd.update("UPDATE producto SET codigoProducto = CONCAT('TMP-', idProducto)");
+                Map<String, Integer> contador = new HashMap<>();
+                for (var fila : bd.queryForList("""
+                        SELECT p.idProducto, COALESCE(c.prefijo, 'PRD') AS prefijo
+                        FROM producto p LEFT JOIN categoria c ON c.idCategoria = p.idCategoria
+                        ORDER BY prefijo, p.idProducto""")) {
+                    String prefijo = String.valueOf(fila.get("prefijo"));
+                    int n = contador.merge(prefijo, 1, Integer::sum);
+                    bd.update("UPDATE producto SET codigoProducto = ? WHERE idProducto = ?",
+                            prefijo + "-" + String.format("%04d", n), fila.get("idProducto"));
+                }
             })
     );
 
@@ -168,6 +258,20 @@ public class MigracionesBd implements ApplicationRunner {
             nuevas++;
         }
         if (nuevas == 0) log.info("Base de datos al día (sin migraciones pendientes).");
+    }
+
+    private boolean existeTabla(String tabla) {
+        Integer n = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+                Integer.class, tabla);
+        return n != null && n > 0;
+    }
+
+    private boolean existeRestriccion(String tabla, String restriccion) {
+        Integer n = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND CONSTRAINT_NAME = ?",
+                Integer.class, tabla, restriccion);
+        return n != null && n > 0;
     }
 
     private boolean existeColumna(String tabla, String columna) {

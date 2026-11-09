@@ -57,7 +57,7 @@ export class SeguimientoService {
   constructor() {
     effect(() => {
       const usuario = this.auth.usuario();
-      untracked(() => (usuario?.rol === 'Cliente' ? this.iniciar(usuario.idUsuario) : this.detener()));
+      untracked(() => (usuario?.tipo === 'Cliente' ? this.iniciar(usuario.idUsuario) : this.detener()));
     });
     inject(DestroyRef).onDestroy(() => this.detener());
   }

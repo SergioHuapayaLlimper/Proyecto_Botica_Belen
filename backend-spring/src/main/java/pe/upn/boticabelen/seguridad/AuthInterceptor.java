@@ -11,7 +11,7 @@ import pe.upn.boticabelen.excepcion.ApiException;
 import pe.upn.boticabelen.repository.UsuarioRepository;
 
 /**
- * Revisa los endpoints marcados con @Requiere antes de ejecutarlos.
+ * Revisa los endpoints marcados con @Requiere antes de ejecutarlos (sesión, tipo de cuenta y permisos del rol).
  * Se consulta la BD en cada petición para que una cuenta desactivada pierda el acceso al instante.
  */
 @Component
@@ -43,9 +43,14 @@ public class AuthInterceptor implements HandlerInterceptor {
         Usuario usuario = usuarioRepository.findById(id).orElse(null);
         if (usuario == null || !usuario.activo()) throw ApiException.unauthorized("Su cuenta está inactiva.");
 
-        String[] roles = requiere.value();
-        if (roles.length > 0 && Arrays.stream(roles).noneMatch(r -> r.equals(usuario.getRol()))) {
+        boolean esCliente = usuario.esCliente();
+        if (requiere.cliente() && !esCliente) throw ApiException.forbidden("Esta acción es solo para clientes.");
+        if ((requiere.personal() || requiere.value().length > 0) && esCliente) {
             throw ApiException.forbidden("No tiene permisos para realizar esta acción.");
+        }
+        String[] permisos = requiere.value();
+        if (permisos.length > 0 && Arrays.stream(permisos).noneMatch(usuario::puede)) {
+            throw ApiException.forbidden("Tu rol no tiene permiso para realizar esta acción.");
         }
 
         request.setAttribute(ATRIBUTO_USUARIO, usuario);

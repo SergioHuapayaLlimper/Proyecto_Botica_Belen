@@ -1,14 +1,42 @@
 // URL de la API (Node.js + Express). Cambia aquí si la levantas en otro puerto.
 export const API = 'http://localhost:3200/api';
 
-export type Rol = 'Admin' | 'Empleado' | 'Cliente';
+// Permisos del panel de gestión (los mismos que backend-spring/.../seguridad/Permisos.java).
+export type Permiso =
+  | 'resumen'
+  | 'mostrador'
+  | 'pedidos'
+  | 'pedidos_estado'
+  | 'productos'
+  | 'productos_editar'
+  | 'categorias'
+  | 'reporte'
+  | 'personal';
 
 export interface Usuario {
   idUsuario: number;
   nombre: string;
   email: string;
   telefono: string | null;
-  rol: Rol;
+  rol: string; // nombre del rol ("Administrador", "Empleado"...) o "Cliente"
+  tipo: 'Cliente' | 'Personal';
+  permisos: Permiso[];
+}
+
+export interface PermisoInfo {
+  clave: Permiso;
+  nombre: string;
+  descripcion: string;
+}
+
+export interface RolPersonal {
+  idRol: number;
+  nombre: string;
+  descripcion: string | null;
+  permisos: Permiso[];
+  esSistema: boolean;
+  totalUsuarios: number;
+  creadoEn: string | null;
 }
 
 export interface Sesion {
@@ -21,6 +49,8 @@ export interface Categoria {
   nombreCategoria: string;
   productos?: number;
   estadoCategoria?: string;
+  prefijo?: string; // prefijo de los códigos de sus productos (CUI → CUI-0001)
+  totalProductos?: number;
 }
 
 export interface Producto {
@@ -120,7 +150,10 @@ export interface Empleado {
   nombre: string;
   email: string;
   telefono: string | null;
-  rol: 'Admin' | 'Empleado';
+  idRol: number | null;
+  rol: string;
+  rolSistema: boolean;
+  creadoEn: string | null;
   estado: number;
   intentos_fallidos: number;
   bloqueado_hasta?: string | null; // RF02: bloqueo temporal vigente ('AAAA-MM-DD HH:MM:SS')

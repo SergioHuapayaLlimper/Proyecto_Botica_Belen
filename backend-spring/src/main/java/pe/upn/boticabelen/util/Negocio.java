@@ -24,8 +24,6 @@ public final class Negocio {
 
     public static final List<String> METODOS_PAGO = List.of("Efectivo", "Yape", "Plin", "Tarjeta");
 
-    public static final List<String> ROLES_PERSONAL = List.of("Admin", "Empleado");
-
     public static final int STOCK_BAJO = 5;
 
     /** Máquina de estados: a qué estados puede pasar un pedido desde su estado actual. */

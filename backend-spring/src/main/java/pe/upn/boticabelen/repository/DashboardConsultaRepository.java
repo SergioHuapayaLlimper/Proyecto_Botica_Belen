@@ -35,7 +35,7 @@ public class DashboardConsultaRepository {
                 + " (SELECT COALESCE(SUM(total), 0) FROM pedido WHERE " + RANGO + " AND " + VALIDA + ") AS ventas,"
                 + " (SELECT COUNT(*) FROM pedido WHERE " + RANGO + " AND " + VALIDA + ") AS pedidosValidos,"
                 + " (SELECT COUNT(*) FROM pedido WHERE estadoPedido = 'Pendiente') AS pendientes,"
-                + " (SELECT COUNT(*) FROM usuario WHERE rol = 'Cliente') AS clientes,"
+                + " (SELECT COUNT(*) FROM usuario WHERE tipo = 'Cliente') AS clientes,"
                 + " (SELECT COUNT(*) FROM producto WHERE estadoProducto = 'Activo' AND stock = 0) AS agotados,"
                 + " (SELECT COUNT(*) FROM producto WHERE estadoProducto = 'Activo' AND stock BETWEEN 1 AND " + Negocio.STOCK_BAJO + ") AS stockBajo";
         var t = sql.uno(consulta, rango(r)).orElseThrow();
