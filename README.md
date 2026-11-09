@@ -16,8 +16,8 @@ Necesitas:
 - **Node.js 24** (o 22.22 en adelante).
 - **MySQL 8**. También sirve el MySQL/MariaDB de XAMPP: solo enciende *MySQL* en su panel.
 
-1. **Crea la base de datos.** En phpMyAdmin, MySQL Workbench o la consola de MySQL, ejecuta en este orden:
-   `database/01_estructura.sql`, `database/02_catalogo_200.sql` y `database/03_datos_demo.sql`.
+1. **Crea la base de datos.** En phpMyAdmin, MySQL Workbench o la consola de MySQL, ejecuta
+   `database/botica_belen.sql` (estructura y datos de prueba en un solo script).
 2. **Revisa `backend/.env`.** Viene listo para MySQL en el puerto **3306**, usuario `root` y sin contraseña (lo normal en XAMPP).
    Si tu MySQL usa otro puerto o tiene contraseña, cámbialo ahí (`DB_PORT`, `DB_PASS`).
 3. **Instala las dependencias** (una sola vez). Abre una terminal en la carpeta del proyecto y ejecuta:
@@ -76,11 +76,8 @@ Todas usan la contraseña `admin123`. En la pantalla **Ingresar** hay botones pa
 
 ## Reiniciar los datos
 
-Para volver a los datos iniciales, ejecuta en orden los scripts de `database/` en tu MySQL (borran y recrean la base `botica_belen_db`):
-`01_estructura.sql`, `02_catalogo_200.sql` y `03_datos_demo.sql`.
-
-Si tu base se creó con una versión anterior (que tenía delivery), ejecuta una sola vez `04_quitar_delivery.sql`.
-Ese script quita la columna `direccionEntrega` y el estado "Enviado o en camino" sin borrar tus pedidos.
+Para volver a los datos iniciales, ejecuta `database/botica_belen.sql` en tu MySQL (borra y recrea las tablas de `botica_belen_db`).
+Con Docker también puedes hacer `docker compose down -v` y luego `docker compose up -d`: el contenedor lo carga solo.
 
 ## Notas
 
