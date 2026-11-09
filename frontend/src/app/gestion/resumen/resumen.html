@@ -1,0 +1,124 @@
+<div class="pagina">
+  <header class="pagina-cabecera">
+    <div>
+      <h1>Resumen de ventas</h1>
+      <p>Las ventas suman solo pedidos no anulados. Montos en soles con IGV incluido.</p>
+    </div>
+  </header>
+
+  <div class="periodo">
+    <div class="segmentos" role="group" aria-label="Periodo">
+      @for (o of opciones; track o.valor) {
+        <button type="button" [class.activo]="rango() === o.valor" [attr.aria-pressed]="rango() === o.valor" (click)="elegir(o.valor)">{{ o.texto }}</button>
+      }
+    </div>
+    @if (rango() === 'libre') {
+      <form class="libre" (submit)="$event.preventDefault(); cargar()">
+        <label class="casilla"><span class="rotulo">Desde</span><input type="date" name="desde" [(ngModel)]="desde" /></label>
+        <label class="casilla"><span class="rotulo">Hasta</span><input type="date" name="hasta" [(ngModel)]="hasta" /></label>
+        <button class="btn btn--tinta">Ver periodo</button>
+      </form>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="aviso aviso--error" role="alert"><app-icono nombre="alerta" [tam]="20" /><p>{{ error() }}</p></div>
+  }
+
+  @if (datos(); as d) {
+    <!-- Libreta de cifras: una sola hoja con casillas, no tarjetas sueltas -->
+    <dl class="hoja libreta" [class.atenuada]="cargando()">
+      <div>
+        <dt class="rotulo">Ventas</dt>
+        <dd class="cifra grande">{{ soles(d.kpis.ventas) }}</dd>
+        <dd class="nota cifra">{{ d.kpis.pedidosValidos }} {{ d.kpis.pedidosValidos === 1 ? 'pedido válido' : 'pedidos válidos' }}</dd>
+      </div>
+      <div>
+        <dt class="rotulo">Ticket promedio</dt>
+        <dd class="cifra grande">{{ soles(d.kpis.ticketPromedio) }}</dd>
+        <dd class="nota cifra">{{ d.kpis.pedidos }} reservas en total</dd>
+      </div>
+      <div>
+        <dt class="rotulo">Anulados</dt>
+        <dd class="cifra grande">{{ anulados() }}</dd>
+        <dd class="nota">cancelados o rechazados</dd>
+      </div>
+      <div>
+        <dt class="rotulo">Clientes registrados</dt>
+        <dd class="cifra grande">{{ d.kpis.clientes }}</dd>
+        <dd class="nota">en toda la historia</dd>
+      </div>
+    </dl>
+
+    <div class="alertas">
+      <a routerLink="/gestion/mostrador" class="alerta" [class.calma]="!d.kpis.pendientes">
+        <app-icono nombre="campana" [tam]="20" />
+        <span><strong class="cifra">{{ d.kpis.pendientes }}</strong> reservas esperando atención</span>
+      </a>
+      <a routerLink="/gestion/productos" [queryParams]="{ stock: 'agotado' }" class="alerta" [class.calma]="!d.kpis.agotados">
+        <app-icono nombre="caja" [tam]="20" />
+        <span><strong class="cifra">{{ d.kpis.agotados }}</strong> productos agotados</span>
+      </a>
+      <a routerLink="/gestion/productos" [queryParams]="{ stock: 'bajo' }" class="alerta" [class.calma]="!d.kpis.stockBajo">
+        <app-icono nombre="alerta" [tam]="20" />
+        <span><strong class="cifra">{{ d.kpis.stockBajo }}</strong> con stock bajo (1 a 5)</span>
+      </a>
+    </div>
+
+    <div class="rejilla">
+      <section class="hoja bloque ancho">
+        <header><h2>Ventas por mes</h2><span class="sub">Últimos 12 meses</span></header>
+        <app-barras-v [datos]="meses()" descripcion="Ventas por mes de los últimos 12 meses" />
+      </section>
+
+      <section class="hoja bloque">
+        <header><h2>Pedidos por estado</h2><span class="sub">En el periodo</span></header>
+        <app-barras-h [datos]="estados()" />
+      </section>
+
+      <section class="hoja bloque">
+        <header><h2>Métodos de pago</h2><span class="sub">Pedidos válidos</span></header>
+        <app-barras-h [datos]="pagos()" />
+      </section>
+
+      <section class="hoja bloque">
+        <header><h2>Más reservados</h2><span class="sub">Unidades en el periodo</span></header>
+        @if (d.topProductos.length) {
+          <ol class="top">
+            @for (p of d.topProductos; track p.idProducto; let i = $index) {
+              <li>
+                <span class="puesto cifra">{{ i + 1 }}</span>
+                <span class="nombre">{{ partes(p.nombreProducto).nombre }}<small>{{ partes(p.nombreProducto).presentacion }}</small></span>
+                <span class="cifra unidades">{{ p.unidades }} u.</span>
+                <span class="cifra monto">{{ soles(p.monto) }}</span>
+              </li>
+            }
+          </ol>
+        } @else {
+          <p class="sin-datos">Sin ventas en este periodo.</p>
+        }
+      </section>
+
+      <section class="hoja bloque">
+        <header>
+          <h2>Por reponer</h2>
+          <a routerLink="/gestion/productos" [queryParams]="{ stock: 'bajo' }" class="sub">Ver todos</a>
+        </header>
+        <ul class="reponer">
+          @for (p of d.stockBajo; track p.idProducto) {
+            <li>
+              <span class="nombre">{{ partes(p.nombreProducto).nombre }}<small class="cifra">{{ p.codigoProducto }}</small></span>
+              @if (p.stock === 0) {
+                <app-sello variante="cancelado" etiqueta="Agotado" />
+              } @else {
+                <app-sello variante="pendiente" [etiqueta]="'Quedan ' + p.stock" />
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+  } @else if (cargando()) {
+    <p class="hoja cargando">Cargando el resumen…</p>
+  }
+</div>

@@ -1,0 +1,124 @@
+@let p = pedido();
+<article class="tarjeta" [class.anulada]="anulada()">
+  <header class="cabecera">
+    <div class="identidad">
+      <img src="img/logo-botica-belen-192.png" alt="" width="48" height="48" />
+      <div>
+        <h2>Reserva <span class="cifra">{{ p.codigoPedido }}</span></h2>
+        <p>{{ fecha(p.fechaHoraToma) }} · {{ unidades() }} {{ unidades() === 1 ? 'unidad' : 'unidades' }}</p>
+      </div>
+    </div>
+    <div class="sello-estado">
+      <app-sello [estado]="p.estadoPedido" [grande]="true" [cae]="recienCreada()" />
+    </div>
+  </header>
+
+  @if (!anulada()) {
+    <ol class="etapas" aria-label="Avance de la reserva">
+      @for (e of etapas(); track e.estado) {
+        <li [attr.aria-current]="e.actual ? 'step' : null" [attr.aria-label]="e.etiqueta + (e.actual ? ' (estado actual)' : e.marcada ? ' (cumplido)' : ' (pendiente)')">
+          <!-- Cada etapa es una casilla fija; el sello se estampa en ella cuando la reserva llega ahí -->
+          <span class="impronta" [class.hecha]="e.marcada && !e.actual" [class.actual]="e.actual" [class.futura]="!e.marcada" [class.sello--cae]="e.actual && recienCreada()" aria-hidden="true">
+            {{ e.corta }}
+          </span>
+        </li>
+      }
+    </ol>
+  }
+
+  <p class="mensaje" [class.mensaje--listo]="p.estadoPedido === 'Listo para entregar'" [class.mensaje--anulada]="anulada()">
+    <app-icono [nombre]="anulada() ? 'alerta' : p.estadoPedido === 'Listo para entregar' ? 'check' : 'info'" [tam]="20" />
+    @if (vistaPersonal()) {
+      <span><span class="quien-ve">El cliente ve:</span> «{{ mensaje() }}»</span>
+    } @else {
+      {{ mensaje() }}
+    }
+  </p>
+
+  <dl class="datos">
+    <div>
+      <dt class="rotulo">Entrega</dt>
+      <dd><app-icono nombre="tienda" [tam]="18" /> Recojo en tienda</dd>
+    </div>
+    <div>
+      <dt class="rotulo">Pago</dt>
+      <dd>{{ p.metodoPago ?? 'Por definir' }} · al recoger</dd>
+    </div>
+    @if (vistaPersonal()) {
+      <div>
+        <dt class="rotulo">Cliente</dt>
+        <dd class="cliente">
+          {{ p.nombreCliente }}
+          <small class="cifra">{{ p.telefonoCliente || 'Sin teléfono' }}</small>
+          <small>{{ p.emailCliente }}</small>
+        </dd>
+      </div>
+    }
+  </dl>
+
+  <div class="tabla-envoltura">
+    <table class="tabla detalle">
+      <thead>
+        <tr>
+          <th scope="col">Producto</th>
+          <th scope="col" class="derecha">Cant.</th>
+          @if (!angosto()) {
+            <th scope="col" class="derecha">P. unit.</th>
+          }
+          <th scope="col" class="derecha">Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of p.detalles; track d.idDetallePedido) {
+          <tr>
+            <td>
+              <strong>{{ partes(d.nombreProducto).nombre }}</strong>
+              @if (partes(d.nombreProducto).presentacion; as pres) {
+                <span class="pres">{{ pres }}</span>
+              }
+              @if (angosto()) {
+                <span class="pres cifra">{{ soles(d.precioUnitario) }} c/u</span>
+              }
+            </td>
+            <td class="derecha">{{ d.cantidad }}</td>
+            @if (!angosto()) {
+              <td class="derecha">{{ soles(d.precioUnitario) }}</td>
+            }
+            <td class="derecha">{{ soles(d.subtotal) }}</td>
+          </tr>
+        }
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row" [attr.colspan]="angosto() ? 2 : 3">Op. gravada</th>
+          <td class="derecha">{{ soles(p.subtotalGeneral) }}</td>
+        </tr>
+        <tr>
+          <th scope="row" [attr.colspan]="angosto() ? 2 : 3">IGV (18 %)</th>
+          <td class="derecha">{{ soles(p.igv) }}</td>
+        </tr>
+        <tr class="total">
+          <th scope="row" [attr.colspan]="angosto() ? 2 : 3">Total a pagar</th>
+          <td class="derecha">{{ soles(p.total) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  @if (observaciones().length) {
+    <div class="notas">
+      <span class="rotulo">Observaciones</span>
+      @for (linea of observaciones(); track $index) {
+        <p>{{ linea }}</p>
+      }
+    </div>
+  }
+
+  @if (!anulada() && p.estadoPedido !== 'Entregado') {
+    <footer class="recojo">
+      <p><app-icono nombre="ubicacion" [tam]="18" /> {{ tienda.direccion }}</p>
+      <p><app-icono nombre="reloj" [tam]="18" /> {{ tienda.horario }}</p>
+      <p><app-icono nombre="usuario" [tam]="18" /> Al recoger, muestra el código <strong class="cifra">{{ p.codigoPedido }}</strong> o tu DNI.</p>
+    </footer>
+  }
+</article>

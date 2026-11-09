@@ -1,0 +1,24 @@
+# MySQL para Botica Belén. Uso: docker compose up -d
+# Los scripts 01-03 se ejecutan solo la primera vez (cuando el volumen está vacío).
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: botica-belen-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: America/Lima
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "3307:3306"   # 3307 en tu PC para no chocar con el MySQL de XAMPP
+    volumes:
+      - botica_data:/var/lib/mysql
+      - ./database:/sql:ro
+      - ./database/docker-init.sh:/docker-entrypoint-initdb.d/00-init.sh:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  botica_data:

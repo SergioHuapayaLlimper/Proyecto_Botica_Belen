@@ -1,0 +1,177 @@
+.filtros {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(160px, 1fr));
+  gap: var(--e3);
+  margin-bottom: var(--e4);
+}
+
+.cargando {
+  padding: var(--e6);
+  text-align: center;
+  color: var(--texto-2);
+}
+
+.tabla {
+  th:first-child,
+  td:first-child {
+    padding-left: var(--e5);
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: var(--e5);
+  }
+}
+
+.codigo {
+  font-weight: 650;
+  color: var(--texto-2);
+  white-space: nowrap;
+}
+
+.sub {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--texto-2);
+}
+
+.receta {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+  font-weight: 650;
+  color: var(--st-preparacion);
+}
+
+.anaquel {
+  white-space: nowrap;
+}
+
+.inactivo td {
+  color: var(--texto-2);
+}
+
+.stock-edit {
+  display: inline-flex;
+  gap: var(--e2);
+  align-items: center;
+  justify-content: flex-end;
+
+  input {
+    width: 84px;
+    height: 38px;
+    padding: 0 var(--e2);
+    font-weight: 700;
+    text-align: right;
+    background: var(--papel);
+    border: 1px solid var(--rayado-fuerte);
+    border-radius: var(--radio);
+
+    &:focus {
+      border-color: var(--tinta);
+      outline: 3px solid rgb(31 108 176 / 0.25);
+    }
+
+    &.bajo {
+      color: var(--aviso);
+    }
+  }
+}
+
+.texto-bajo {
+  color: var(--aviso);
+}
+
+.pie-tabla {
+  padding: var(--e3) var(--e5);
+  font-size: var(--t-chico);
+  color: var(--texto-2);
+}
+
+@media (max-width: 1000px) {
+  .filtros {
+    grid-template-columns: 1fr 1fr;
+
+    .buscar {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+// En el celular cada producto es una ficha: nombre arriba, luego código y sello,
+// anaquel y precio, y el stock (editable por el Admin) con el enlace Editar.
+@media (max-width: 640px) {
+  .tabla-envoltura {
+    overflow: visible;
+  }
+
+  .tabla {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas:
+        'producto producto'
+        'codigo estado'
+        'anaquel precio'
+        'stock editar';
+      gap: var(--e1) var(--e3);
+      align-items: center;
+      padding: var(--e3) var(--e4);
+      border-bottom: 1px solid var(--rayado);
+    }
+
+    td {
+      padding: 0 !important;
+      text-align: left;
+      border: 0;
+    }
+
+    td:nth-child(1) {
+      grid-area: codigo;
+    }
+
+    td:nth-child(2) {
+      grid-area: producto;
+    }
+
+    td:nth-child(3) {
+      grid-area: anaquel;
+    }
+
+    td:nth-child(4) {
+      grid-area: precio;
+      justify-self: end;
+      font-weight: 700;
+    }
+
+    td:nth-child(5) {
+      grid-area: stock;
+      display: flex;
+      gap: var(--e2);
+      align-items: center;
+
+      &::before {
+        content: 'Stock';
+        font-size: var(--t-rotulo);
+        font-weight: 650;
+        color: var(--azul);
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+    }
+
+    td:nth-child(6) {
+      grid-area: estado;
+      justify-self: end;
+    }
+
+    td:nth-child(7) {
+      grid-area: editar;
+      justify-self: end;
+    }
+  }
+}

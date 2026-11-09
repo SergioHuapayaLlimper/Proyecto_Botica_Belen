@@ -1,0 +1,202 @@
+:host {
+  display: block;
+}
+
+.ficha {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  height: 100%;
+  background: var(--papel);
+  transition: background-color 180ms var(--sale);
+
+  &:hover {
+    background: #f8fafd;
+  }
+
+  &.agotada {
+    .cabeza,
+    .casillas {
+      opacity: 0.62;
+    }
+  }
+}
+
+.cabeza {
+  display: flex;
+  gap: var(--e3);
+  align-items: flex-start;
+  padding: var(--e4);
+  color: var(--texto);
+  text-decoration: none;
+
+  // Pictograma discreto: identifica la categoría sin repetirse a gritos en el pliego.
+  app-pictograma {
+    --lado: 46px;
+
+    opacity: 0.85;
+  }
+
+  &:hover h3 {
+    color: var(--azul);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+}
+
+.nombre {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+
+  h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: var(--t-cuerpo);
+    font-weight: 650;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow-wrap: anywhere;
+  }
+}
+
+.presentacion {
+  font-size: var(--t-chico);
+  color: var(--texto-2);
+}
+
+// Dos casillas de formulario lado a lado, separadas por el filete impreso.
+.casillas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-top: 1px solid var(--rayado);
+
+  > div {
+    display: grid;
+    gap: 4px;
+    align-content: start;
+    padding: var(--e3) var(--e4);
+
+    & + div {
+      border-left: 1px solid var(--rayado);
+    }
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.precio {
+  font-size: var(--t-grande);
+  font-weight: 750;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--tinta);
+  white-space: nowrap;
+}
+
+.accion {
+  padding: 0 var(--e4) var(--e4);
+
+  .btn {
+    min-height: 48px;
+  }
+
+  // Sobrio en reposo (tinta sobre papel, ícono rojo); se llena de tinta al pasar el cursor.
+  .separar:not(:disabled) {
+    color: var(--tinta);
+    background: var(--papel);
+    border-color: var(--rayado-fuerte);
+
+    app-icono {
+      color: var(--rojo);
+      transition: color 160ms var(--sale);
+    }
+
+    &:hover {
+      color: #fff;
+      background: var(--tinta);
+      border-color: var(--tinta);
+
+      app-icono {
+        color: #fff;
+      }
+    }
+  }
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  min-height: 48px;
+  overflow: hidden;
+  background: var(--velo);
+  border: 1px solid var(--rayado-fuerte);
+  border-radius: var(--radio);
+
+  span {
+    font-size: var(--t-chico);
+    color: var(--texto-2);
+    text-align: center;
+
+    strong {
+      font-size: var(--t-medio);
+      color: var(--tinta);
+    }
+  }
+
+  button {
+    display: grid;
+    place-items: center;
+    height: 46px;
+    color: var(--tinta);
+    cursor: pointer;
+    background: #fff;
+    border: 0;
+    transition: background-color 140ms var(--sale);
+
+    &:first-child {
+      border-right: 1px solid var(--rayado);
+    }
+
+    &:last-child {
+      border-left: 1px solid var(--rayado);
+    }
+
+    &:hover:not(:disabled) {
+      background: #e3ebf6;
+    }
+
+    &:disabled {
+      color: #a3abbb;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.sello-encima {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: rgb(255 255 255 / 0.5);
+  animation: se-va 1600ms var(--sale) both;
+}
+
+@keyframes se-va {
+  0%,
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}

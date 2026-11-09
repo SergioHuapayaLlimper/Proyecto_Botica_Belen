@@ -1,0 +1,66 @@
+{
+  // Tareas de Botica Belén. Se ejecutan desde Terminal > Ejecutar tarea… (o Ctrl+Mayús+P > "Tasks: Run Task").
+  // "API (backend)" arranca sola al abrir esta carpeta y también con Ctrl+Mayús+B.
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "API (backend)",
+      // API Spring Boot (backend-spring). La primera vez descarga Maven y dependencias: tarda unos minutos.
+      "type": "shell",
+      "command": "./mvnw spring-boot:run",
+      "options": { "cwd": "${workspaceFolder}/backend-spring" },
+      "windows": { "command": "mvnw.cmd spring-boot:run", "options": { "cwd": "${workspaceFolder}/backend-spring", "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "botica-api",
+        "pattern": { "regexp": "^x^" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Scanning for projects|Restarting",
+          "endsPattern": "API de Botica Belén \\(Spring Boot\\) lista|APPLICATION FAILED TO START|BUILD FAILURE"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "botica", "clear": true },
+      "group": { "kind": "build", "isDefault": true },
+      "runOptions": { "runOn": "folderOpen" }
+    },
+    {
+      "label": "API Node (versión anterior)",
+      // Solo para comparar. Usa el mismo puerto 3200: detén Spring antes de lanzarla.
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "windows": { "options": { "cwd": "${workspaceFolder}/backend", "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "botica-api-node",
+        "pattern": { "regexp": "^x^" },
+        "background": { "activeOnStart": true, "beginsPattern": "Restarting|> node", "endsPattern": "API de Botica Belén lista|No se pudo conectar" }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "botica", "clear": true }
+    },
+    {
+      "label": "Web (frontend)",
+      "type": "shell",
+      "command": "npm start",
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "windows": { "options": { "cwd": "${workspaceFolder}/frontend", "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "botica-web",
+        "pattern": { "regexp": "^x^" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Changes detected|Building",
+          "endsPattern": "bundle generation (complete|failed)"
+        }
+      },
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "botica", "clear": true }
+    },
+    {
+      "label": "Botica Belén: todo",
+      "dependsOn": ["API (backend)", "Web (frontend)"],
+      "problemMatcher": []
+    }
+  ]
+}

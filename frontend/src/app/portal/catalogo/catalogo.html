@@ -1,0 +1,147 @@
+<!-- En celular: carril de categorías desplazable. En escritorio las categorías viven en el riel lateral. -->
+<nav class="categorias" aria-label="Categorías">
+  <div class="contenedor carril">
+    <a class="chip" [class.activo]="!categoria()" routerLink="/" [queryParams]="{ q: q() || null }" [attr.aria-current]="!categoria() ? 'page' : null">
+      <app-icono nombre="cat-0" [tam]="20" [trazo]="1.5" />
+      <span>Todo</span>
+      <small class="cifra">{{ totalCatalogo() }}</small>
+    </a>
+    @for (c of categorias(); track c.idCategoria) {
+      <a
+        class="chip"
+        [class.activo]="categoria() === c.idCategoria"
+        routerLink="/"
+        [queryParams]="{ categoria: c.idCategoria, q: q() || null }"
+        [attr.aria-current]="categoria() === c.idCategoria ? 'page' : null"
+      >
+        <app-icono [nombre]="'cat-' + c.idCategoria" [tam]="20" [trazo]="1.5" />
+        <span>{{ c.nombreCategoria }}</span>
+        <small class="cifra">{{ c.productos }}</small>
+      </a>
+    }
+  </div>
+</nav>
+
+<div class="contenedor catalogo">
+  <aside class="riel" aria-label="Filtros del catálogo">
+    <h2 class="rotulo">Categorías</h2>
+    <ul class="lista-categorias">
+      <li>
+        <a routerLink="/" [queryParams]="{ q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }" [class.activo]="!categoria()" [attr.aria-current]="!categoria() ? 'page' : null">
+          <app-icono nombre="cat-0" [tam]="18" [trazo]="1.5" /><span>Todo el catálogo</span><small class="cifra">{{ totalCatalogo() }}</small>
+        </a>
+      </li>
+      @for (c of categorias(); track c.idCategoria) {
+        <li>
+          <a
+            routerLink="/"
+            [queryParams]="{ categoria: c.idCategoria, q: q() || null, orden: orden() === 'nombre_asc' ? null : orden() }"
+            [class.activo]="categoria() === c.idCategoria"
+            [attr.aria-current]="categoria() === c.idCategoria ? 'page' : null"
+          >
+            <app-icono [nombre]="'cat-' + c.idCategoria" [tam]="18" [trazo]="1.5" /><span>{{ c.nombreCategoria }}</span><small class="cifra">{{ c.productos }}</small>
+          </a>
+        </li>
+      }
+    </ul>
+  </aside>
+
+  <div class="principal">
+    <section class="encabezado" id="resultados">
+      <div class="titulo">
+        <h1>
+          @if (q()) {
+            Resultados para «{{ q() }}»
+          } @else if (nombreCategoria()) {
+            {{ nombreCategoria() }}
+          } @else {
+            Catálogo de productos
+          }
+        </h1>
+        <p class="cifra">
+          @if (estado().datos; as d) {
+            {{ d.total }} {{ d.total === 1 ? 'producto' : 'productos' }}
+            @if (q() && nombreCategoria()) {
+              en {{ nombreCategoria() }}
+            }
+            · precios con IGV incluido
+          } @else {
+            Precios con IGV incluido
+          }
+        </p>
+      </div>
+
+      <div class="controles">
+        <label class="interruptor">
+          <input type="checkbox" role="switch" [checked]="disponibles()" (change)="filtrar({ disponibles: $any($event.target).checked ? 1 : null })" />
+          <span class="pista" aria-hidden="true"></span>
+          Solo con stock
+        </label>
+        <label class="casilla orden">
+          <span class="rotulo">Ordenar por</span>
+          <select [value]="orden()" (change)="filtrar({ orden: $any($event.target).value === 'nombre_asc' ? null : $any($event.target).value })">
+            <option value="nombre_asc">Nombre (A–Z)</option>
+            <option value="nombre_desc">Nombre (Z–A)</option>
+            <option value="precio_asc">Precio: menor a mayor</option>
+            <option value="precio_desc">Precio: mayor a menor</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    @if (estado().cargando) {
+      <div class="pliego" aria-busy="true" aria-label="Cargando productos">
+        @for (i of esqueleto; track i) {
+          <div class="ficha-esqueleto"><span></span><span></span><span></span></div>
+        }
+      </div>
+    } @else if (estado().error) {
+      <div class="aviso aviso--error" role="alert">
+        <app-icono nombre="alerta" [tam]="20" />
+        <div>
+          <strong>No pudimos cargar el catálogo.</strong>
+          <p>{{ estado().error }}</p>
+        </div>
+      </div>
+    } @else if (estado().datos; as d) {
+      @if (d.items.length === 0) {
+        <div class="vacio hoja">
+          <app-icono nombre="buscar" [tam]="48" [trazo]="1.25" />
+          <h3>No encontramos productos{{ q() ? ' para «' + q() + '»' : '' }}</h3>
+          <p>Prueba con otro nombre o revisa todas las categorías. Si tu medicamento requiere receta, consúltalo en tienda.</p>
+          <a class="btn btn--borde" routerLink="/">Ver todo el catálogo</a>
+        </div>
+      } @else {
+        <!-- Un solo pliego de formulario: cada ficha es una celda separada por el filete impreso -->
+        <div class="pliego">
+          @for (p of d.items; track p.idProducto; let i = $index) {
+            <app-ficha [producto]="p" [style.--i]="i" />
+          }
+        </div>
+
+        @if (d.totalPaginas > 1) {
+          <nav class="paginacion" aria-label="Páginas del catálogo">
+            <button type="button" class="btn btn--borde" [disabled]="pagina() === 1" (click)="irAPagina(pagina() - 1)">
+              <app-icono nombre="izquierda" [tam]="18" /> Anterior
+            </button>
+            <ol>
+              @for (n of paginas(); track n; let i = $index) {
+                @if (i > 0 && n - paginas()[i - 1] > 1) {
+                  <li class="salto" aria-hidden="true">…</li>
+                }
+                <li>
+                  <button type="button" class="numero cifra" [class.actual]="n === pagina()" [attr.aria-current]="n === pagina() ? 'page' : null" (click)="irAPagina(n)">
+                    {{ n }}
+                  </button>
+                </li>
+              }
+            </ol>
+            <button type="button" class="btn btn--borde" [disabled]="pagina() === d.totalPaginas" (click)="irAPagina(pagina() + 1)">
+              Siguiente <app-icono nombre="derecha" [tam]="18" />
+            </button>
+          </nav>
+        }
+      }
+    }
+  </div>
+</div>

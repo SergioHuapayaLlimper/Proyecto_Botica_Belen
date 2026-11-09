@@ -1,0 +1,138 @@
+<div class="pagina">
+  <header class="pagina-cabecera">
+    <div>
+      <h1>Productos y stock</h1>
+      <p>
+        @if (auth.esAdmin()) {
+          Ajusta el stock después del inventario físico o edita los datos del producto.
+        } @else {
+          Consulta precio, stock y ubicación en anaquel. Los cambios los hace el administrador.
+        }
+      </p>
+    </div>
+    @if (auth.esAdmin()) {
+      <a routerLink="/gestion/productos/nuevo" class="btn btn--tinta"><app-icono nombre="mas" [tam]="18" /> Nuevo producto</a>
+    }
+  </header>
+
+  <form class="filtros" (submit)="$event.preventDefault(); cargar()">
+    <label class="casilla buscar">
+      <span class="rotulo">Buscar</span>
+      <input name="q" [(ngModel)]="q" placeholder="Nombre, código o categoría" (input)="buscarLuego()" />
+    </label>
+    <label class="casilla">
+      <span class="rotulo">Categoría</span>
+      <select name="categoria" [(ngModel)]="categoria" (change)="cargar()">
+        <option value="">Todas</option>
+        @for (c of categorias(); track c.idCategoria) {
+          <option [value]="c.idCategoria">{{ c.nombreCategoria }}</option>
+        }
+      </select>
+    </label>
+    <label class="casilla">
+      <span class="rotulo">Stock</span>
+      <select name="stock" [(ngModel)]="stock" (change)="cargar()">
+        <option value="">Todos</option>
+        <option value="bajo">Stock bajo (1 a 5)</option>
+        <option value="agotado">Agotados</option>
+      </select>
+    </label>
+    <label class="casilla">
+      <span class="rotulo">Ordenar</span>
+      <select name="orden" [(ngModel)]="orden" (change)="cargar()">
+        <option value="nombre_asc">Nombre (A–Z)</option>
+        <option value="stock_asc">Menos stock primero</option>
+        <option value="stock_desc">Más stock primero</option>
+        <option value="precio_asc">Precio menor</option>
+        <option value="precio_desc">Precio mayor</option>
+      </select>
+    </label>
+  </form>
+
+  <section class="hoja">
+    @if (error()) {
+      <div class="aviso aviso--error" role="alert"><app-icono nombre="alerta" [tam]="20" /><p>{{ error() }}</p></div>
+    } @else if (cargando()) {
+      <p class="cargando">Cargando productos…</p>
+    } @else if (lista().length === 0) {
+      <div class="vacio">
+        <app-icono nombre="caja" [tam]="44" [trazo]="1.25" />
+        <h3>Sin productos con esos filtros</h3>
+      </div>
+    } @else {
+      <div class="tabla-envoltura">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Código</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Anaquel</th>
+              <th scope="col" class="derecha">Precio</th>
+              <th scope="col" class="derecha">Stock</th>
+              <th scope="col">Estado</th>
+              @if (auth.esAdmin()) {
+                <th scope="col"><span class="visualmente-oculto">Editar</span></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of lista(); track p.idProducto) {
+              <tr [class.inactivo]="p.estadoProducto === 'Inactivo'">
+                <td class="cifra codigo">{{ p.codigoProducto }}</td>
+                <td>
+                  <strong>{{ partes(p.nombreProducto).nombre }}</strong>
+                  <span class="sub">
+                    {{ partes(p.nombreProducto).presentacion }}{{ partes(p.nombreProducto).presentacion ? ' · ' : '' }}{{ p.nombreCategoria }}
+                    @if (p.requiere_receta) {
+                      · <span class="receta"><app-icono nombre="receta" [tam]="14" /> Con receta</span>
+                    }
+                  </span>
+                </td>
+                <td class="cifra anaquel">{{ p.ubicacionAnaquel || '—' }}</td>
+                <td class="derecha cifra">{{ soles(p.precioProducto) }}</td>
+                <td class="derecha">
+                  @if (auth.esAdmin()) {
+                    <span class="stock-edit">
+                      <input
+                        type="number"
+                        min="0"
+                        class="cifra"
+                        [class.bajo]="p.stock <= 5"
+                        [value]="stockEditado()[p.idProducto] ?? p.stock"
+                        (input)="editarStock(p, $any($event.target).value)"
+                        (keydown.enter)="guardarStock(p)"
+                        [attr.aria-label]="'Stock de ' + p.nombreProducto"
+                      />
+                      @if (cambioPendiente(p)) {
+                        <button type="button" class="btn btn--chico btn--tinta" [disabled]="guardando() === p.idProducto" (click)="guardarStock(p)">Guardar</button>
+                      }
+                    </span>
+                  } @else {
+                    <strong class="cifra" [class.texto-bajo]="p.stock <= 5">{{ p.stock }}</strong>
+                  }
+                </td>
+                <td>
+                  @if (p.estadoProducto === 'Inactivo') {
+                    <app-sello variante="agotado" etiqueta="Inactivo" />
+                  } @else if (p.stock === 0) {
+                    <app-sello variante="cancelado" etiqueta="Agotado" />
+                  } @else if (p.stock <= 5) {
+                    <app-sello variante="pendiente" etiqueta="Stock bajo" />
+                  } @else {
+                    <app-sello variante="listo" etiqueta="Activo" />
+                  }
+                </td>
+                @if (auth.esAdmin()) {
+                  <td class="derecha">
+                    <a [routerLink]="['/gestion/productos', p.idProducto]" class="btn btn--chico btn--texto" [attr.aria-label]="'Editar ' + p.nombreProducto"><app-icono nombre="editar" [tam]="16" /> Editar</a>
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="pie-tabla cifra">{{ lista().length }} {{ lista().length === 1 ? 'producto' : 'productos' }}</p>
+    }
+  </section>
+</div>

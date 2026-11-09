@@ -1,0 +1,22 @@
+# Dependencias y compilados
+node_modules/
+target/
+dist/
+.angular/
+
+# Secretos y configuración local (se sube solo .env.example)
+.env
+.env.*
+!.env.example
+
+# Logs, respaldos y temporales
+logs/
+*.log
+*.bak
+*.bak.json
+_to_delete/
+
+# Sistema / IDE
+.DS_Store
+Thumbs.db
+.idea/

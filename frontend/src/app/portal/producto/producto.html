@@ -1,0 +1,84 @@
+<div class="pagina">
+  <a routerLink="/" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Volver al catálogo</a>
+
+  @if (estado().p; as p) {
+    <article class="producto hoja">
+      <div class="imagen">
+        <app-pictograma [categoria]="p.idCategoria" [imagen]="p.imagenURL" [alt]="p.nombreProducto" [tamIcono]="96" [style.view-transition-name]="'producto-' + p.idProducto" />
+        @if (sellado()) {
+          <div class="sello-encima" aria-hidden="true"><app-sello variante="rojo" etiqueta="Separado" [grande]="true" [cae]="true" /></div>
+        }
+      </div>
+
+      <div class="contenido">
+        <h1>{{ partes().nombre }}</h1>
+        <p class="sub">
+          @if (partes().presentacion) {
+            {{ partes().presentacion }} ·
+          }
+          <a routerLink="/" [queryParams]="{ categoria: p.idCategoria }">{{ p.nombreCategoria }}</a> · Código <span class="cifra">{{ p.codigoProducto }}</span>
+        </p>
+
+        <dl class="casillas">
+          <div>
+            <dt class="rotulo">Precio (IGV incluido)</dt>
+            <dd class="precio cifra">{{ soles(p.precioProducto) }}</dd>
+          </div>
+          <div>
+            <dt class="rotulo">Disponibilidad</dt>
+            <dd>
+              @if (p.stock === 0) {
+                <app-sello variante="agotado" etiqueta="Agotado" />
+              } @else if (p.stock <= 5) {
+                <app-sello variante="pendiente" [etiqueta]="'Quedan ' + p.stock" />
+              } @else {
+                <app-sello variante="listo" etiqueta="Disponible" />
+                <span class="unidades cifra">{{ p.stock }} unidades</span>
+              }
+            </dd>
+          </div>
+        </dl>
+
+        @if (p.stock > 0) {
+          <div class="comprar">
+            <div class="paso" role="group" aria-label="Cantidad">
+              <button type="button" (click)="cantidad.set(cantidad() - 1)" [disabled]="cantidad() <= 1" aria-label="Una unidad menos"><app-icono nombre="menos" [tam]="18" /></button>
+              <span class="cifra">{{ cantidad() }}</span>
+              <button type="button" (click)="cantidad.set(cantidad() + 1)" [disabled]="cantidad() + enReserva() >= p.stock" aria-label="Una unidad más"><app-icono nombre="mas" [tam]="18" /></button>
+            </div>
+            <button type="button" class="btn btn--grande" [disabled]="enReserva() >= p.stock" (click)="separar(p)">
+              <app-icono nombre="reserva" [tam]="20" /> Separar {{ cantidad() > 1 ? cantidad() + ' unidades' : '' }}
+            </button>
+          </div>
+          @if (enReserva() > 0) {
+            <p class="en-reserva">
+              <app-icono nombre="check" [tam]="18" /> Tienes {{ enReserva() }} en tu reserva · <a routerLink="/reserva">Ver tu reserva</a>
+            </p>
+          }
+        }
+
+        @if (p.descripcionProducto) {
+          <section class="descripcion">
+            <h2>Descripción</h2>
+            <p>{{ p.descripcionProducto }}</p>
+          </section>
+        }
+
+        <ol class="pasos">
+          <li><strong>Sepáralo</strong> aquí y confirma tu reserva.</li>
+          <li><strong>Te avisamos</strong> en «Mis reservas» cuando esté listo.</li>
+          <li><strong>Recógelo</strong> en la botica y paga como prefieras.</li>
+        </ol>
+      </div>
+    </article>
+  } @else if (estado().error) {
+    <div class="vacio hoja">
+      <app-icono nombre="receta" [tam]="48" [trazo]="1.25" />
+      <h3>{{ estado().error }}</h3>
+      <p>Algunos medicamentos requieren receta médica y solo se venden en tienda.</p>
+      <a routerLink="/" class="btn btn--tinta">Ir al catálogo</a>
+    </div>
+  } @else {
+    <div class="hoja cargando" aria-busy="true">Cargando producto…</div>
+  }
+</div>

@@ -1,0 +1,503 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+  outline: none;
+}
+
+:host ::ng-deep .contenedor {
+  width: min(1240px, 100% - 32px);
+  margin-inline: auto;
+}
+
+.solo-angosto {
+  display: none;
+}
+
+.saltar {
+  position: absolute;
+  top: -60px;
+  left: 16px;
+  z-index: 50;
+  padding: 10px 16px;
+  font-weight: 650;
+  color: #fff;
+  background: var(--rojo);
+  border-radius: var(--radio);
+
+  &:focus {
+    top: 12px;
+  }
+}
+
+// ---- Banda azul marino: la región que la tinta posee ----
+.banda {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+  background: var(--tinta);
+  padding-block: var(--e4) var(--e5);
+
+  > .contenedor {
+    position: relative;
+  }
+}
+
+// La luz de la estrella de Belén: dos focos (azul y rojo) que se desplazan muy despacio.
+.luz {
+  position: absolute;
+  inset: -40% -10%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 46% at 18% 30%, rgb(31 108 176 / 0.55), transparent 70%),
+    radial-gradient(30% 38% at 82% 70%, rgb(217 37 52 / 0.32), transparent 70%);
+  filter: blur(8px);
+  animation: deriva 22s ease-in-out infinite alternate;
+}
+
+@keyframes deriva {
+  from {
+    transform: translate3d(-3%, -2%, 0) scale(1);
+  }
+
+  to {
+    transform: translate3d(4%, 3%, 0) scale(1.08);
+  }
+}
+
+// Emblema de cruz y estrella (del logo), apenas visible detrás del lema.
+.emblema {
+  position: absolute;
+  top: 50%;
+  right: max(2vw, calc((100vw - 1240px) / 2 - 60px));
+  z-index: -1;
+  width: 420px;
+  height: 420px;
+  color: rgb(255 255 255 / 0.07);
+  transform: translateY(-38%) rotate(-8deg);
+  pointer-events: none;
+}
+
+.banda--portada {
+  padding-bottom: var(--e6);
+}
+
+.lema {
+  display: grid;
+  gap: var(--e3);
+  max-width: min(1240px, 100% - 32px);
+  margin-top: var(--e5);
+  animation: lema-entra 700ms var(--sale) both;
+}
+
+.lema-titulo {
+  font-size: clamp(2rem, 1.1rem + 3.3vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+
+  span {
+    color: #b9cdea;
+  }
+}
+
+@keyframes lema-entra {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+.fila {
+  display: flex;
+  gap: var(--e4);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.marca {
+  display: flex;
+  gap: var(--e3);
+  align-items: center;
+  min-width: 0;
+  color: #fff;
+  text-decoration: none;
+
+  img {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.25));
+  }
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.marca-texto {
+  display: grid;
+  line-height: 1.15;
+
+  strong {
+    font-size: 1.375rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  small {
+    font-size: var(--t-rotulo);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--texto-claro);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+  }
+}
+
+.acciones {
+  display: flex;
+  gap: var(--e1);
+  align-items: center;
+}
+
+.enlace {
+  display: inline-flex;
+  white-space: nowrap;
+  gap: var(--e2);
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e3);
+  font-weight: 600;
+  color: #e8eef8;
+  text-decoration: none;
+  border-radius: var(--radio);
+  transition: background-color 160ms var(--sale);
+
+  &:hover,
+  &.activo {
+    color: #fff;
+    background: rgb(255 255 255 / 0.1);
+  }
+}
+
+.boton-reserva {
+  position: relative;
+  white-space: nowrap;
+  display: inline-flex;
+  gap: var(--e2);
+  align-items: center;
+  min-height: 46px;
+  margin-left: var(--e2);
+  padding: 0 var(--e3) 0 var(--e4);
+  font-weight: 700;
+  color: var(--tinta);
+  text-decoration: none;
+  background: #fff;
+  border-radius: var(--radio);
+  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.5);
+  transition: transform 160ms var(--sale);
+
+  &:hover {
+    color: var(--tinta);
+    transform: translateY(-1px);
+  }
+}
+
+.contador {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  font-size: var(--t-chico);
+  font-weight: 800;
+  color: var(--texto-2);
+  background: var(--velo);
+  border-radius: 999px;
+
+  &.lleno {
+    color: #fff;
+    background: var(--rojo);
+  }
+
+  &.late {
+    animation: late 420ms var(--sale);
+  }
+}
+
+@keyframes late {
+  35% {
+    transform: scale(1.35);
+    box-shadow: 0 0 0 6px rgb(217 37 52 / 0.22);
+  }
+}
+
+// ---- Buscador: el primer gesto del cliente ----
+.buscador {
+  display: flex;
+  gap: var(--e2);
+  margin-top: var(--e4);
+}
+
+.campo-busqueda {
+  display: flex;
+  flex: 1;
+  gap: var(--e3);
+  align-items: center;
+  min-width: 0;
+  padding: 0 var(--e3) 0 var(--e4);
+  color: var(--tinta);
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: var(--radio);
+  transition:
+    border-color 160ms var(--sale),
+    box-shadow 160ms var(--sale);
+
+  &:focus-within {
+    border-color: var(--rojo);
+    box-shadow: 0 0 0 4px rgb(217 37 52 / 0.25);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 52px;
+    font-size: 1.0625rem;
+    color: var(--texto);
+    background: transparent;
+    border: 0;
+    outline: none;
+
+    &::placeholder {
+      color: #5f687b;
+    }
+
+    &::-webkit-search-cancel-button {
+      display: none;
+    }
+  }
+}
+
+.limpiar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: var(--texto-2);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+
+  &:hover {
+    color: var(--tinta);
+    background: var(--velo);
+  }
+}
+
+// ---- Franja: cómo funciona, en una línea ----
+.franja {
+  font-size: var(--t-chico);
+  color: var(--texto);
+  background: var(--papel);
+  border-bottom: 1px solid var(--rayado);
+}
+
+.franja-filas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2) var(--e6);
+  padding-block: var(--e3);
+
+  p {
+    display: inline-flex;
+    gap: var(--e2);
+    align-items: center;
+  }
+
+  app-icono {
+    color: var(--rojo);
+  }
+}
+
+// ---- Pie ----
+.pie {
+  margin-top: var(--e8);
+  color: #d8e2f2;
+  background: var(--tinta);
+  font-size: var(--t-chico);
+
+  .rotulo {
+    margin-bottom: var(--e3);
+    color: #9fbbe0;
+  }
+
+  p {
+    display: flex;
+    gap: var(--e2);
+    align-items: flex-start;
+    margin-bottom: var(--e2);
+    line-height: 1.45;
+  }
+
+  app-icono {
+    margin-top: 1px;
+    color: #9fbbe0;
+  }
+}
+
+.pie-filas {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: var(--e6);
+  padding-block: var(--e7) var(--e6);
+}
+
+.pie-marca {
+  display: flex;
+  gap: var(--e4);
+  align-items: flex-start;
+
+  strong {
+    display: block;
+    margin-bottom: var(--e1);
+    font-size: var(--t-medio);
+    color: #fff;
+  }
+
+  p {
+    max-width: 34ch;
+  }
+}
+
+.pie-legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e2) var(--e5);
+  justify-content: space-between;
+  padding-block: var(--e4);
+  color: #9fb2cf;
+  border-top: 1px solid rgb(255 255 255 / 0.12);
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .pie-filas {
+    grid-template-columns: 1fr;
+    gap: var(--e5);
+  }
+}
+
+@media (max-width: 1000px) {
+  .solo-amplio {
+    display: none !important;
+  }
+
+  .marca-texto small {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  // En el celular cada acción de la cabecera lleva su palabra debajo del ícono.
+  .solo-angosto {
+    display: block;
+  }
+
+  .acciones {
+    gap: 2px;
+  }
+
+  .enlace,
+  .boton-reserva {
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    min-height: 52px;
+    padding: 4px var(--e2);
+    font-size: 0.75rem;
+    font-weight: 650;
+  }
+
+  .boton-reserva {
+    margin-left: var(--e1);
+    padding-inline: var(--e3);
+
+    .contador {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      min-width: 22px;
+      height: 22px;
+      font-size: 0.75rem;
+    }
+  }
+
+  .banda {
+    padding-block: var(--e3) var(--e4);
+  }
+
+  .lema {
+    gap: var(--e2);
+    margin-top: var(--e4);
+  }
+
+  .emblema {
+    width: 260px;
+    height: 260px;
+    right: -60px;
+  }
+
+  .marca img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .marca-texto strong {
+    font-size: 1.1875rem;
+  }
+
+  .marca-texto small {
+    display: none;
+  }
+
+  .enlace {
+    padding: 0 var(--e2);
+  }
+
+  .boton-reserva {
+    margin-left: var(--e1);
+    padding: 0 var(--e2) 0 var(--e3);
+  }
+
+  .buscador {
+    margin-top: var(--e3);
+
+    .btn {
+      display: none;
+    }
+  }
+
+  .franja-filas {
+    gap: var(--e1);
+    font-size: 0.8125rem;
+  }
+}
+
+// En teléfonos muy angostos el emblema del logo ya dice "Botica Belén".
+@media (max-width: 400px) {
+  .marca-texto {
+    display: none;
+  }
+}

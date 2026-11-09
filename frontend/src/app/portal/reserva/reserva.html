@@ -1,0 +1,132 @@
+<div class="pagina">
+  <a routerLink="/" class="volver"><app-icono nombre="izquierda" [tam]="18" /> Seguir viendo el catálogo</a>
+  <header class="pagina-cabecera">
+    <div>
+      <h1>Tu reserva</h1>
+      <p>Te separamos los productos y los recoges en la botica. Pagas al recoger.</p>
+    </div>
+  </header>
+
+  @if (retirados().length) {
+    <div class="aviso aviso--atencion" role="status">
+      <app-icono nombre="alerta" [tam]="20" />
+      <p>Quitamos de tu reserva productos que ya no están disponibles en línea: {{ retirados().join(', ') }}.</p>
+    </div>
+  }
+
+  @if (carrito.items().length === 0) {
+    <div class="vacio hoja">
+      <app-icono nombre="reserva" [tam]="52" [trazo]="1.25" />
+      <h3>Aún no separaste ningún producto</h3>
+      <p>Busca lo que necesitas en el catálogo y pulsa «Separar».</p>
+      <a routerLink="/" class="btn btn--tinta">Ir al catálogo</a>
+    </div>
+  } @else {
+    <div class="disposicion">
+      <!-- Productos separados -->
+      <section class="hoja lista" aria-labelledby="titulo-productos">
+        <h2 id="titulo-productos" class="lista-titulo">
+          Productos separados <span class="cifra">{{ carrito.unidades() }} {{ carrito.unidades() === 1 ? 'unidad' : 'unidades' }}</span>
+        </h2>
+        <ul>
+          @for (item of carrito.items(); track item.idProducto) {
+            <li [class.con-problema]="item.cantidad > item.stock">
+              <app-pictograma [categoria]="item.idCategoria" [imagen]="item.imagenURL" [tamIcono]="24" />
+              <div class="info">
+                <a [routerLink]="['/producto', item.idProducto]" class="nombre">{{ partes(item.nombreProducto).nombre }}</a>
+                <span class="pres">
+                  {{ partes(item.nombreProducto).presentacion ?? '' }}
+                  {{ partes(item.nombreProducto).presentacion ? '·' : '' }} {{ soles(item.precioProducto) }} c/u
+                </span>
+                @if (item.stock === 0) {
+                  <span class="problema">Se agotó: quítalo para continuar</span>
+                } @else if (item.cantidad > item.stock) {
+                  <span class="problema">Solo quedan {{ item.stock }}: ajusta la cantidad</span>
+                }
+              </div>
+              <div class="paso-chico" role="group" [attr.aria-label]="'Cantidad de ' + item.nombreProducto">
+                <button type="button" (click)="carrito.cambiarCantidad(item.idProducto, item.cantidad - 1)" aria-label="Una unidad menos">
+                  <app-icono nombre="menos" [tam]="16" />
+                </button>
+                <span class="cifra">{{ item.cantidad }}</span>
+                <button type="button" (click)="carrito.cambiarCantidad(item.idProducto, item.cantidad + 1)" [disabled]="item.cantidad >= item.stock" aria-label="Una unidad más">
+                  <app-icono nombre="mas" [tam]="16" />
+                </button>
+              </div>
+              <strong class="importe cifra">{{ soles(item.precioProducto * item.cantidad) }}</strong>
+              <button type="button" class="quitar" (click)="carrito.quitar(item.idProducto)" [attr.aria-label]="'Quitar ' + item.nombreProducto">
+                <app-icono nombre="papelera" [tam]="18" />
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <!-- Datos de la reserva -->
+      <aside class="hoja datos" aria-labelledby="titulo-datos">
+        <h2 id="titulo-datos" class="lista-titulo">Datos de la reserva</h2>
+
+        <section class="recojo" aria-labelledby="titulo-recojo">
+          <h3 id="titulo-recojo" class="rotulo">Dónde lo recoges</h3>
+          <div class="recojo-tienda">
+            <app-icono nombre="tienda" [tam]="22" />
+            <span>
+              <strong>Recojo en tienda · sin costo</strong>
+              <small>{{ tienda.direccion }}</small>
+              <small>{{ tienda.horario }}</small>
+            </span>
+          </div>
+        </section>
+
+        <fieldset>
+          <legend class="rotulo">¿Cómo pagas?</legend>
+          <div class="opciones">
+            @for (m of metodos; track m.valor) {
+              <label class="opcion" [class.elegida]="metodo() === m.valor">
+                <input type="radio" name="metodo" [value]="m.valor" [checked]="metodo() === m.valor" (change)="metodo.set(m.valor)" />
+                <app-icono [nombre]="m.icono" [tam]="22" />
+                <span><strong>{{ m.valor }}</strong><small>{{ m.detalle }}</small></span>
+              </label>
+            }
+          </div>
+          @if (intento() && !metodo()) {
+            <p class="error-campo">Elige cómo vas a pagar.</p>
+          }
+        </fieldset>
+
+        <label class="casilla">
+          <span class="rotulo">Observaciones (opcional)</span>
+          <textarea name="observaciones" [(ngModel)]="observaciones" maxlength="500" placeholder="Ej. paso a recoger después de las 6 p. m."></textarea>
+        </label>
+
+        <dl class="totales cifra">
+          <div><dt>Op. gravada</dt><dd>{{ soles(carrito.subtotal()) }}</dd></div>
+          <div><dt>IGV (18 %)</dt><dd>{{ soles(carrito.igv()) }}</dd></div>
+          <div class="total"><dt>Total a pagar</dt><dd>{{ soles(carrito.total()) }}</dd></div>
+        </dl>
+
+        @if (error()) {
+          <div class="aviso aviso--error" role="alert"><app-icono nombre="alerta" [tam]="20" /><p>{{ error() }}</p></div>
+        }
+
+        @if (auth.esCliente()) {
+          <button type="button" class="btn btn--grande btn--bloque" [disabled]="enviando() || carrito.conProblemas().length > 0" (click)="confirmar()">
+            @if (enviando()) {
+              Registrando tu reserva…
+            } @else {
+              <app-icono nombre="check" [tam]="20" /> Confirmar reserva
+            }
+          </button>
+          <p class="letra-chica">Te avisaremos el estado en «Mis reservas». Los precios ya incluyen IGV.</p>
+        } @else if (auth.esPersonal()) {
+          <div class="aviso aviso--atencion"><app-icono nombre="info" [tam]="20" /><p>Las cuentas del personal no pueden reservar. Ingresa con una cuenta de cliente.</p></div>
+        } @else {
+          <a class="btn btn--grande btn--bloque" routerLink="/ingresar" [queryParams]="{ volver: '/reserva' }">
+            <app-icono nombre="usuario" [tam]="20" /> Ingresa para confirmar
+          </a>
+          <p class="letra-chica">¿Primera vez? <a routerLink="/registro" [queryParams]="{ volver: '/reserva' }">Crea tu cuenta</a> en un minuto. Tu reserva se conserva.</p>
+        }
+      </aside>
+    </div>
+  }
+</div>

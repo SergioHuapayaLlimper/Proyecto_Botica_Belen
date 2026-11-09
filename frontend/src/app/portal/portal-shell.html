@@ -1,0 +1,115 @@
+<a class="saltar" href="#contenido">Saltar al contenido</a>
+
+<header class="banda" [class.banda--portada]="enPortada()">
+  <div class="luz" aria-hidden="true"></div>
+  <svg class="emblema" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+    <path d="M78 18h44v60h60v44h-60v60H78v-60H18V78h60z" fill="none" stroke="currentColor" stroke-width="1.5" />
+    <path d="M100 46l9.5 35.5L145 72l-28 22 28 22-35.5-9.5L100 142l-9.5-35.5L55 116l28-22-28-22 35.5 9.5z" fill="none" stroke="currentColor" stroke-width="1.5" />
+  </svg>
+  <div class="contenedor fila">
+    <a routerLink="/" class="marca" aria-label="Botica Belén, ir al catálogo">
+      <img src="img/logo-botica-belen-192.png" alt="" width="52" height="52" />
+      <span class="marca-texto">
+        <strong>Botica Belén</strong>
+        <small>Farmacia y Cuidado Personal</small>
+      </span>
+    </a>
+
+    <nav class="acciones" aria-label="Tu cuenta">
+      @if (auth.esCliente()) {
+        <a routerLink="/mis-reservas" routerLinkActive="activo" class="enlace">
+          <app-icono nombre="lista" [tam]="20" /><span class="solo-amplio">Mis reservas</span><span class="solo-angosto">Reservas</span>
+        </a>
+      }
+      @if (auth.esPersonal()) {
+        <a [routerLink]="auth.inicioSegunRol()" class="enlace">
+          <app-icono nombre="mostrador" [tam]="20" /><span class="solo-amplio">Panel de gestión</span><span class="solo-angosto">Panel</span>
+        </a>
+      }
+      @if (auth.usuario()) {
+        <a routerLink="/mi-cuenta" routerLinkActive="activo" class="enlace" [attr.aria-label]="'Mi cuenta, ' + auth.usuario()!.nombre">
+          <app-icono nombre="usuario" [tam]="20" /><span class="solo-amplio">{{ auth.nombreCorto() }}</span><span class="solo-angosto">Cuenta</span>
+        </a>
+      } @else {
+        <a routerLink="/ingresar" class="enlace">
+          <app-icono nombre="usuario" [tam]="20" /><span>Ingresar</span>
+        </a>
+      }
+      <a routerLink="/reserva" routerLinkActive="activo" class="boton-reserva" [attr.aria-label]="'Tu reserva, ' + carrito.unidades() + ' unidades'">
+        <app-icono nombre="reserva" [tam]="22" />
+        <span class="solo-amplio">Tu reserva</span>
+        <span class="solo-angosto">Reserva</span>
+        <span class="contador cifra" [class.lleno]="carrito.unidades() > 0" [class.late]="late()" (animationend)="late.set(false)">{{ carrito.unidades() }}</span>
+      </a>
+    </nav>
+  </div>
+
+  @if (enPortada()) {
+    <div class="contenedor lema">
+      <p class="lema-titulo">Te lo separamos.<br /><span>Tú solo pasas a recoger.</span></p>
+    </div>
+  }
+
+  <form class="contenedor buscador" role="search" (submit)="$event.preventDefault(); buscar()">
+    <label class="visualmente-oculto" for="buscar-producto">Buscar un producto</label>
+    <div class="campo-busqueda">
+      <app-icono nombre="buscar" [tam]="22" />
+      <input
+        #campo
+        id="buscar-producto"
+        type="search"
+        autocomplete="off"
+        enterkeyhint="search"
+        placeholder="¿Qué necesitas? Ej. paracetamol"
+        [value]="termino()"
+        (input)="escribir(campo.value)"
+      />
+      @if (termino()) {
+        <button type="button" class="limpiar" (click)="limpiar(campo)" aria-label="Borrar búsqueda">
+          <app-icono nombre="cerrar" [tam]="18" />
+        </button>
+      }
+    </div>
+    <button class="btn btn--grande" type="submit">Buscar</button>
+  </form>
+</header>
+
+<div class="franja">
+  <div class="contenedor franja-filas">
+    <p><app-icono nombre="reserva" [tam]="18" /> Reserva en línea y <strong>recoge en tienda</strong></p>
+    <p><app-icono nombre="efectivo" [tam]="18" /> Pagas al recoger: efectivo, Yape, Plin o tarjeta</p>
+    <p class="solo-amplio"><app-icono nombre="reloj" [tam]="18" /> Lun–Sáb 8:00 a. m. – 10:00 p. m.</p>
+  </div>
+</div>
+
+<main id="contenido" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer class="pie">
+  <div class="contenedor pie-filas">
+    <div class="pie-marca">
+      <img src="img/logo-botica-belen-192.png" alt="" width="56" height="56" />
+      <div>
+        <strong>Botica Belén</strong>
+        <p>Reserva en línea con stock real. Te lo separamos y lo recoges en el mostrador.</p>
+      </div>
+    </div>
+    <div>
+      <h2 class="rotulo">Visítanos</h2>
+      <p><app-icono nombre="ubicacion" [tam]="18" /> {{ tienda.direccion }}</p>
+      <p><app-icono nombre="reloj" [tam]="18" /> {{ tienda.horario }}</p>
+    </div>
+    <div>
+      <h2 class="rotulo">Contacto</h2>
+      <p><app-icono nombre="telefono" [tam]="18" /> {{ tienda.telefono }}</p>
+      <p><app-icono nombre="celular" [tam]="18" /> WhatsApp {{ tienda.whatsapp }}</p>
+    </div>
+  </div>
+  <div class="contenedor pie-legal">
+    <p>© {{ anio }} Botica Belén · Los medicamentos con receta se venden en tienda.</p>
+    <p>Proyecto académico · Soluciones Web y Aplicaciones Distribuidas · UNDC</p>
+  </div>
+</footer>
+
+<p class="visualmente-oculto" aria-live="polite">{{ carrito.anuncio() }}</p>

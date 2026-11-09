@@ -1,0 +1,369 @@
+// ---- Carril de categorías (solo en pantallas angostas) ----
+.categorias {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: none;
+  background: color-mix(in srgb, var(--fondo) 94%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--rayado);
+}
+
+.carril {
+  display: flex;
+  gap: var(--e2);
+  padding-block: var(--e3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: var(--e2);
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e4) 0 var(--e3);
+  font-size: var(--t-chico);
+  font-weight: 600;
+  color: var(--tinta);
+  text-decoration: none;
+  white-space: nowrap;
+  scroll-snap-align: start;
+  background: var(--papel);
+  border: 1px solid var(--rayado);
+  border-radius: 999px;
+
+  small {
+    font-size: var(--t-rotulo);
+    font-weight: 700;
+    color: var(--texto-2);
+  }
+
+  &.activo {
+    color: #fff;
+    background: var(--tinta);
+    border-color: var(--tinta);
+
+    small {
+      color: var(--texto-claro);
+    }
+  }
+}
+
+// ---- Disposición de escritorio: riel de categorías + pliego ----
+.catalogo {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: var(--e6);
+  align-items: start;
+  padding-top: var(--e6);
+}
+
+.riel {
+  position: sticky;
+  top: var(--e4);
+
+  > .rotulo {
+    padding: 0 var(--e3) var(--e3);
+  }
+}
+
+.lista-categorias {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  a {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) auto;
+    gap: var(--e3);
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--e3);
+    font-size: var(--t-base);
+    font-weight: 600;
+    color: var(--texto);
+    text-decoration: none;
+    border-radius: var(--radio);
+    transition:
+      background-color 160ms var(--sale),
+      color 160ms var(--sale);
+
+    app-icono {
+      color: var(--azul);
+    }
+
+    span {
+      line-height: 1.25;
+    }
+
+    small {
+      font-size: var(--t-chico);
+      font-weight: 650;
+      color: var(--texto-2);
+    }
+
+    &:hover {
+      color: var(--tinta);
+      background: var(--papel);
+    }
+
+    &.activo {
+      color: #fff;
+      background: var(--tinta);
+
+      app-icono,
+      small {
+        color: #fff;
+      }
+    }
+  }
+}
+
+.principal {
+  min-width: 0;
+}
+
+// ---- Encabezado del listado ----
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e4) var(--e5);
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: var(--e4);
+  scroll-margin-top: 80px;
+
+  h1 {
+    font-size: var(--t-titulo);
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    margin-top: var(--e1);
+    color: var(--texto-2);
+  }
+}
+
+.controles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e4);
+  align-items: center;
+}
+
+.orden {
+  min-width: 230px;
+}
+
+.interruptor {
+  display: inline-flex;
+  gap: var(--e3);
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+
+  input {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .pista {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    background: #b9c3d3;
+    border-radius: 999px;
+    transition: background-color 180ms var(--sale);
+
+    &::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      content: '';
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgb(14 41 84 / 0.3);
+      transition: transform 200ms var(--sale);
+    }
+  }
+
+  input:checked + .pista {
+    background: var(--ok);
+
+    &::after {
+      transform: translateX(18px);
+    }
+  }
+
+  input:focus-visible + .pista {
+    outline: 3px solid rgb(31 108 176 / 0.55);
+    outline-offset: 2px;
+  }
+}
+
+// ---- El pliego: una hoja de formulario; las fichas son sus celdas ----
+.pliego {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  overflow: hidden;
+  background: var(--papel);
+  border: 1px solid var(--rayado-fuerte);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+
+  // Filete impreso entre celdas: a la derecha y abajo de cada una (el borde del pliego recorta el sobrante).
+  > * {
+    box-shadow:
+      1px 0 0 var(--rayado),
+      0 1px 0 var(--rayado);
+  }
+}
+
+// Entrada orquestada: las fichas aparecen en cascada (solo las primeras doce esperan).
+.pliego app-ficha {
+  animation: ficha-entra 520ms var(--sale) both;
+  animation-delay: calc(min(var(--i, 0), 11) * 32ms);
+}
+
+@keyframes ficha-entra {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.ficha-esqueleto {
+  display: grid;
+  gap: var(--e3);
+  height: 236px;
+  padding: var(--e4);
+
+  span {
+    display: block;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #edf0f5 0%, #f6f8fb 50%, #edf0f5 100%);
+    background-size: 200% 100%;
+    animation: brillo 1.3s linear infinite;
+
+    &:nth-child(1) {
+      width: 85%;
+      height: 18px;
+    }
+
+    &:nth-child(2) {
+      width: 50%;
+      height: 14px;
+    }
+
+    &:nth-child(3) {
+      align-self: end;
+      height: 48px;
+    }
+  }
+}
+
+@keyframes brillo {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// ---- Paginación ----
+.paginacion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e3);
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--e6);
+
+  ol {
+    display: flex;
+    gap: var(--e1);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .salto {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    color: var(--texto-2);
+  }
+}
+
+.numero {
+  min-width: 44px;
+  height: 44px;
+  font-weight: 650;
+  color: var(--tinta);
+  cursor: pointer;
+  background: var(--papel);
+  border: 1px solid var(--rayado);
+  border-radius: var(--radio);
+
+  &:hover {
+    border-color: var(--tinta);
+  }
+
+  &.actual {
+    color: #fff;
+    background: var(--tinta);
+    border-color: var(--tinta);
+  }
+}
+
+@media (max-width: 960px) {
+  .categorias {
+    display: block;
+  }
+
+  .catalogo {
+    grid-template-columns: 1fr;
+    padding-top: var(--e5);
+  }
+
+  .riel {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .encabezado {
+    h1 {
+      font-size: var(--t-grande);
+    }
+  }
+
+  .controles {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .orden {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .pliego {
+    grid-template-columns: 1fr;
+  }
+
+  .paginacion .btn {
+    padding: 0 var(--e3);
+  }
+}

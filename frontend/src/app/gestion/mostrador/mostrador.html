@@ -1,0 +1,167 @@
+<div class="pagina">
+  <header class="pagina-cabecera">
+    <div>
+      <h1>Mostrador</h1>
+      <p class="primera-mayuscula">{{ hoy }} · se actualiza solo cada 15 segundos</p>
+    </div>
+    <button type="button" class="btn btn--borde" (click)="cargar()"><app-icono nombre="refrescar" [tam]="18" /> Actualizar</button>
+  </header>
+
+  @if (!puedeActuar()) {
+    <div class="aviso consulta"><app-icono nombre="info" [tam]="20" /><p>Vista de consulta: los estados de los pedidos los cambian los empleados en el mostrador.</p></div>
+  }
+  @if (error()) {
+    <div class="aviso aviso--error" role="alert"><app-icono nombre="alerta" [tam]="20" /><p>{{ error() }}</p></div>
+  }
+
+  <!-- Reservas nuevas -->
+  <section class="hoja bloque" aria-labelledby="t-nuevas">
+    <header class="bloque-cabeza">
+      <h2 id="t-nuevas">Reservas nuevas</h2>
+      <app-sello [variante]="nuevas().length ? 'pendiente' : 'tinta'" [etiqueta]="nuevas().length + (nuevas().length === 1 ? ' por atender' : ' por atender')" />
+    </header>
+
+    @if (cargando()) {
+      <p class="cargando">Cargando reservas…</p>
+    } @else if (nuevas().length === 0) {
+      <div class="vacio chico">
+        <app-icono nombre="campana" [tam]="40" [trazo]="1.25" />
+        <h3>No hay reservas nuevas</h3>
+        <p>Cuando un cliente reserve, aparecerá aquí y verás un aviso en la pantalla.</p>
+      </div>
+    } @else {
+      <div class="tabla-envoltura">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Llegó</th>
+              <th scope="col">Reserva</th>
+              <th scope="col">Cliente</th>
+              <th scope="col" class="derecha">Unid.</th>
+              <th scope="col" class="derecha">Total</th>
+              <th scope="col">Pago</th>
+              @if (puedeActuar()) {
+                <th scope="col" class="derecha">Atender</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of nuevas(); track p.idPedido) {
+              <tr [class.recien]="recienLlegadas().has(p.idPedido)">
+                <td class="hora" [title]="fecha(p.fechaHoraToma)">{{ hace(p.fechaHoraToma) }}</td>
+                <td><a [routerLink]="['/gestion/pedidos', p.idPedido]" class="codigo cifra">{{ p.codigoPedido }}</a></td>
+                <td>
+                  <strong>{{ p.nombreCliente }}</strong>
+                  <span class="sub cifra">{{ p.telefonoCliente || 'Sin teléfono' }}</span>
+                </td>
+                <td class="derecha cifra">{{ p.unidades }}</td>
+                <td class="derecha cifra"><strong>{{ soles(p.total) }}</strong></td>
+                <td>{{ p.metodoPago }}</td>
+                @if (puedeActuar()) {
+                  <td class="derecha acciones">
+                    <button type="button" class="btn btn--chico btn--tinta" [disabled]="ocupado() === p.idPedido" (click)="avanzar(p, 'Aceptado')">
+                      <app-icono nombre="check" [tam]="16" /> Aceptar
+                    </button>
+                    <button type="button" class="btn btn--chico btn--texto" (click)="pedirMotivo(p, 'Rechazado')">Rechazar</button>
+                  </td>
+                }
+              </tr>
+              @if (motivoPara()?.idPedido === p.idPedido) {
+                <tr class="fila-motivo">
+                  <td colspan="7">
+                    <form class="motivo" (submit)="$event.preventDefault(); avanzar(p, motivoPara()!.estado, motivo)">
+                      <label class="casilla">
+                        <span class="rotulo">Motivo para {{ motivoPara()!.estado === 'Rechazado' ? 'rechazar' : 'cancelar' }} {{ p.codigoPedido }}</span>
+                        <input #campoMotivo [value]="motivo" (input)="motivo = campoMotivo.value" placeholder="Ej. el cliente pidió un producto que ya no tenemos" />
+                      </label>
+                      <button class="btn btn--peligro" [disabled]="motivo.trim().length < 10 || ocupado() === p.idPedido">Confirmar</button>
+                      <button type="button" class="btn btn--texto" (click)="motivoPara.set(null)">Volver</button>
+                    </form>
+                    <p class="ayuda-campo">Mínimo 10 caracteres. El stock separado vuelve al inventario.</p>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <div class="dos">
+    <!-- Qué preparar ahora -->
+    <section class="hoja bloque" aria-labelledby="t-preparar">
+      <header class="bloque-cabeza">
+        <h2 id="t-preparar">Qué preparar ahora</h2>
+        <span class="contador-sutil cifra">{{ porRecoger() }} por separar</span>
+      </header>
+      @if (grupos().length === 0) {
+        <div class="vacio chico">
+          <app-icono nombre="caja" [tam]="40" [trazo]="1.25" />
+          <h3>Nada por preparar</h3>
+          <p>Al aceptar una reserva, sus productos aparecen aquí ordenados por estante.</p>
+        </div>
+      } @else {
+        <ol class="estantes">
+          @for (g of grupos(); track g.estante) {
+            <li>
+              <h3 class="estante">{{ g.estante }}</h3>
+              <ul>
+                @for (l of g.lineas; track clave(l)) {
+                  <li>
+                    <label class="recoger" [class.hecho]="recogidos().has(clave(l))">
+                      <input type="checkbox" [checked]="recogidos().has(clave(l))" (change)="alternarRecogido(l)" />
+                      <span class="marca-check" aria-hidden="true"><app-icono nombre="check" [tam]="14" [trazo]="2.5" /></span>
+                      <span class="cuanto cifra">{{ l.cantidad }} ×</span>
+                      <span class="que">
+                        {{ partes(l.nombreProducto).nombre }}
+                        <small>
+                          @if (partes(l.nombreProducto).presentacion; as pres) {
+                            {{ pres }} ·
+                          }
+                          {{ l.codigoPedido }} · {{ l.nombreCliente }}
+                        </small>
+                      </span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+
+    <!-- En curso -->
+    <section class="hoja bloque" aria-labelledby="t-curso">
+      <header class="bloque-cabeza">
+        <h2 id="t-curso">En curso</h2>
+        <span class="contador-sutil cifra">{{ enCurso().length }} {{ enCurso().length === 1 ? 'pedido' : 'pedidos' }}</span>
+      </header>
+      @if (enCurso().length === 0) {
+        <div class="vacio chico">
+          <app-icono nombre="lista" [tam]="40" [trazo]="1.25" />
+          <h3>Sin pedidos en curso</h3>
+          <p>Los pedidos aceptados avanzan aquí hasta su entrega.</p>
+        </div>
+      } @else {
+        <ul class="curso">
+          @for (p of enCurso(); track p.idPedido) {
+            <li>
+              <div class="curso-datos">
+                <a [routerLink]="['/gestion/pedidos', p.idPedido]" class="codigo cifra">{{ p.codigoPedido }}</a>
+                <span class="sub">{{ p.nombreCliente }} · {{ p.unidades }} unid. · {{ soles(p.total) }} · {{ p.metodoPago }}</span>
+              </div>
+              <app-sello [estado]="p.estadoPedido" />
+              @if (puedeActuar() && siguiente(p); as sig) {
+                <button type="button" class="btn btn--chico" [class.btn--tinta]="sig !== 'Entregado'" [disabled]="ocupado() === p.idPedido" (click)="avanzar(p, sig)">
+                  {{ accion[sig] }}
+                </button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+</div>

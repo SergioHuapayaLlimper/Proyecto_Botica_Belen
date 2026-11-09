@@ -1,0 +1,325 @@
+:host {
+  display: block;
+}
+
+.tarjeta {
+  position: relative;
+  overflow: hidden;
+  // Papel de libreta: rayado azul impreso, muy tenue.
+  background:
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(31 108 176 / 0.06) 31px 32px),
+    var(--papel);
+  border: 1px solid var(--rayado-fuerte);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra-suave);
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--e5);
+  border-bottom: 1px solid var(--rayado);
+
+  h2 {
+    font-size: var(--t-medio);
+  }
+
+  p {
+    margin-top: 2px;
+    font-size: var(--t-chico);
+    color: var(--texto-2);
+  }
+}
+
+.identidad {
+  display: flex;
+  gap: var(--e3);
+  align-items: center;
+}
+
+.sello-estado {
+  padding: var(--e2) var(--e3);
+}
+
+// ---- Etapas: casillas fijas; en cada una se estampa un sello del mismo tamaño ----
+.etapas {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--rayado);
+
+  li {
+    display: grid;
+    place-items: center;
+    padding: var(--e4) var(--e2);
+
+    & + li {
+      border-left: 1px dashed var(--rayado);
+    }
+  }
+}
+
+.impronta {
+  --c: var(--rayado-fuerte);
+
+  display: grid;
+  place-items: center;
+  width: min(100%, 124px);
+  height: 34px;
+  font-size: 0.8125rem;
+  font-weight: 750;
+  line-height: 1;
+  color: var(--c);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  border: 1.5px solid var(--c);
+  border-radius: 999px;
+
+  // Etapa que aún no llega: casilla en blanco, contorno punteado.
+  &.futura {
+    color: #7d879a;
+    border-style: dashed;
+  }
+
+  // Etapa cumplida: tinta azul marino, doble filete como un sello real.
+  &.hecha {
+    --c: var(--tinta);
+
+    background: color-mix(in srgb, var(--tinta) 5%, #fff);
+    box-shadow:
+      inset 0 0 0 2px #fff,
+      inset 0 0 0 3px color-mix(in srgb, var(--tinta) 40%, transparent);
+  }
+
+  // Etapa actual: sello rojo, apenas girado.
+  &.actual {
+    --c: var(--rojo);
+    --giro: -3deg;
+
+    background: color-mix(in srgb, var(--rojo) 6%, #fff);
+    box-shadow:
+      inset 0 0 0 2px #fff,
+      inset 0 0 0 3px color-mix(in srgb, var(--rojo) 45%, transparent);
+    transform: rotate(var(--giro));
+  }
+
+  &.sello--cae {
+    animation: sello-cae 220ms var(--sale) both;
+  }
+}
+
+.mensaje {
+  display: flex;
+  gap: var(--e2);
+  align-items: flex-start;
+  padding: var(--e4) var(--e5);
+  font-weight: 600;
+  color: var(--tinta);
+  background: var(--velo);
+  border-bottom: 1px solid var(--rayado);
+
+  app-icono {
+    margin-top: 1px;
+    color: var(--azul);
+  }
+
+  &--listo {
+    color: #11502f;
+    background: #eef8f2;
+
+    app-icono {
+      color: var(--ok);
+    }
+  }
+
+  &--anulada {
+    color: #7d1520;
+    background: #fdf0f1;
+
+    app-icono {
+      color: var(--error);
+    }
+  }
+}
+
+.quien-ve {
+  font-weight: 500;
+  color: var(--texto-2);
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  // El filete derecho de la última columna se esconde bajo el borde de la tarjeta.
+  margin: 0 -1px 0 0;
+  border-bottom: 1px solid var(--rayado);
+
+  > div {
+    display: grid;
+    gap: 4px;
+    padding: var(--e3) var(--e5);
+    border-right: 1px solid var(--rayado);
+  }
+
+  dd {
+    display: flex;
+    gap: var(--e2);
+    align-items: flex-start;
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+
+    app-icono {
+      margin-top: 2px;
+      color: var(--azul);
+    }
+  }
+
+  .cliente {
+    flex-direction: column;
+    gap: 0;
+
+    small {
+      font-size: var(--t-chico);
+      font-weight: 400;
+      color: var(--texto-2);
+    }
+  }
+}
+
+.detalle {
+  font-size: var(--t-base);
+
+  th:first-child,
+  td:first-child {
+    padding-left: var(--e5);
+  }
+
+  th:last-child,
+  td:last-child {
+    padding-right: var(--e5);
+  }
+
+  .pres {
+    display: block;
+    font-size: var(--t-chico);
+    color: var(--texto-2);
+  }
+
+  tfoot {
+    th {
+      font-size: var(--t-chico);
+      font-weight: 600;
+      color: var(--texto-2);
+      text-align: right;
+      text-transform: none;
+      letter-spacing: 0;
+      border-bottom: 0;
+    }
+
+    td {
+      border-bottom: 0;
+    }
+
+    .total {
+      th,
+      td {
+        padding-top: var(--e3);
+        font-size: var(--t-medio);
+        font-weight: 800;
+        color: var(--tinta);
+        border-top: 1.5px solid var(--tinta);
+      }
+    }
+  }
+}
+
+.notas {
+  padding: var(--e4) var(--e5);
+  font-size: var(--t-chico);
+  border-top: 1px solid var(--rayado);
+
+  p {
+    margin-top: var(--e1);
+    color: var(--texto-2);
+  }
+}
+
+.recojo {
+  display: grid;
+  gap: var(--e2);
+  padding: var(--e4) var(--e5) var(--e5);
+  font-size: var(--t-chico);
+  border-top: 1px dashed var(--rayado-fuerte);
+
+  p {
+    display: flex;
+    gap: var(--e2);
+    align-items: flex-start;
+  }
+
+  app-icono {
+    margin-top: 1px;
+    color: var(--rojo);
+  }
+}
+
+.anulada .cabecera h2 {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+@media (max-width: 640px) {
+  .cabecera,
+  .mensaje {
+    padding-inline: var(--e4);
+  }
+
+  .etapas {
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-flow: row;
+
+    li {
+      padding: var(--e3) var(--e1);
+
+      &:nth-child(3n + 1) {
+        border-left: 0;
+      }
+
+      &:nth-child(n + 4) {
+        border-top: 1px dashed var(--rayado);
+      }
+    }
+  }
+
+  .datos > div,
+  .notas,
+  .recojo {
+    padding-inline: var(--e4);
+  }
+
+  .detalle {
+    th:first-child,
+    td:first-child {
+      padding-left: var(--e4);
+    }
+
+    th:last-child,
+    td:last-child {
+      padding-right: var(--e4);
+    }
+  }
+}
+
+@media print {
+  .tarjeta {
+    box-shadow: none;
+  }
+}
