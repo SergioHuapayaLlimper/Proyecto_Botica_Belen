@@ -1,86 +1,71 @@
 # Botica Belén — Angular + Spring Boot
 
-Reserva en línea con recojo en tienda. Mismo modelo de datos MySQL del proyecto PHP original, ahora con:
+Web de reservas con recojo en tienda para una botica local: los clientes separan productos y el personal los prepara y entrega.
 
 - **frontend/** — Angular 22 (portal de clientes + panel de gestión). Puerto **4300**.
-- **backend-spring/** — **Spring Boot 3.5 + Java 21 + JPA** (API REST con JWT, arquitectura en capas). Puerto **3200**. Es la API por defecto: ver `backend-spring/README.md`.
-- **backend/** — Node.js + Express 5 (versión anterior de la API, mismas rutas). Puerto **3200**.
-- **docker-compose.yml** — MySQL 8.4 en Docker (puerto **3307**) que carga los scripts de `database/` la primera vez.
-- **database/** — scripts SQL (estructura, catálogo de 200 productos y datos de demostración).
+- **backend-spring/** — Spring Boot 3.5 + Java 21 + JPA: API REST con JWT y arquitectura en capas. Puerto **3200**. Detalle en `backend-spring/README.md`.
+- **database/** — `botica_belen.sql`: estructura y datos de prueba en un solo script.
+- **docker-compose.yml** — MySQL 8.4 en Docker (puerto **3307**) que carga `database/botica_belen.sql` la primera vez.
 
-No necesita Apache ni PHP: solo MySQL y Node.js. Todo se corre desde la terminal de VS Code.
+## Requisitos
 
-## Instalar en otra PC (primera vez)
-
-Necesitas:
+- **Java 21** (Maven no hace falta: el proyecto trae Maven Wrapper).
 - **Node.js 24** (o 22.22 en adelante).
-- **MySQL 8**. También sirve el MySQL/MariaDB de XAMPP: solo enciende *MySQL* en su panel.
+- **Docker Desktop** para la base de datos.
 
-1. **Crea la base de datos.** En phpMyAdmin, MySQL Workbench o la consola de MySQL, ejecuta
-   `database/botica_belen.sql` (estructura y datos de prueba en un solo script).
-2. **Revisa `backend/.env`.** Viene listo para MySQL en el puerto **3306**, usuario `root` y sin contraseña (lo normal en XAMPP).
-   Si tu MySQL usa otro puerto o tiene contraseña, cámbialo ahí (`DB_PORT`, `DB_PASS`).
-3. **Instala las dependencias** (una sola vez). Abre una terminal en la carpeta del proyecto y ejecuta:
+## Instalar (primera vez)
 
-   ```bash
-   cd backend
-   npm install
-   cd ../frontend
-   npm install
-   ```
+```bash
+docker compose up -d          # crea la base botica_belen_db en el puerto 3307
+cd frontend
+npm install
+```
 
-   Si PowerShell dice que *la ejecución de scripts está deshabilitada*, escribe `npm.cmd install` en lugar de `npm install`, o usa una terminal *Command Prompt*.
-   Si npm muestra un aviso `allow-scripts` sobre `msgpackr-extract`, ignóralo: es opcional y no afecta al proyecto.
-4. **Arráncalo** como se explica en la sección siguiente.
+Si PowerShell dice que *la ejecución de scripts está deshabilitada*, usa `npm.cmd install`.
 
-## Cómo abrirlo (desde VS Code)
+## Cómo abrirlo
 
-1. Verifica que MySQL esté encendido. El puerto, el usuario y la contraseña están en `backend/.env`.
-2. Abre una terminal en esta carpeta (`botica-belen-angular`) y ejecuta:
+Con Docker encendido, desde la carpeta del proyecto:
 
-   ```bash
-   node iniciar.mjs
-   ```
+```bash
+node iniciar.mjs
+```
 
-3. Cuando aparezca `Local: http://localhost:4300/`, abre **http://localhost:4300** en el navegador.
-
-También puedes usar dos terminales por separado: `npm run dev` dentro de `backend/` y `npm start` dentro de `frontend/`.
+Abre **http://localhost:4300** cuando aparezca `Local: http://localhost:4300/`. La primera vez Spring Boot descarga dependencias y tarda unos minutos.
 
 ### Con las tareas de VS Code
 
-La carpeta trae `.vscode/tasks.json` con tres tareas:
+`.vscode/tasks.json` trae tres tareas (*Terminal › Ejecutar tarea…*):
 
-- **API (backend)**: arranca sola al abrir la carpeta (si VS Code pregunta, elige *Permitir*). También se lanza con `Ctrl+Mayús+B`.
-- **Web (frontend)** y **Botica Belén: todo** (API + web): desde *Terminal › Ejecutar tarea…*.
+- **API (backend)**: arranca sola al abrir la carpeta y también con `Ctrl+Mayús+B`.
+- **Web (frontend)**.
+- **Botica Belén: todo** (API + web).
 
-En la terminal de la API verás una línea por cada petición, por ejemplo `[10:42:15] GET /api/categorias → 200 (4 ms)`.
-Para que la API no arranque sola, borra la línea `"runOptions"` de la tarea en `.vscode/tasks.json`.
-
-## Cuentas de prueba
-
-Todas usan la contraseña `admin123`. En la pantalla **Ingresar** hay botones para entrar con un clic.
-
-| Rol | Correo | Entra a |
-|---|---|---|
-| Cliente | juan.perez@gmail.com | Catálogo, reservas, mi cuenta |
-| Empleado | empleado1@botica.com | Gestión › Mostrador (acepta y prepara pedidos) |
-| Admin | admin@botica.com | Gestión › Resumen, productos, reporte, personal |
+En la terminal de la API verás una línea por petición, por ejemplo `[10:42:15] GET /api/categorias → 200 (4 ms)`. También queda en `backend-spring/logs/api.log`.
 
 ## Qué probar
 
-1. **Como visitante:** busca un producto, filtra por categoría y pulsa **Separar**.
-2. Ve a **Tu reserva**, ingresa como Cliente, elige el método de pago y confirma. Todas las reservas se recogen en tienda (no hay delivery).
-3. **Como Empleado:** en **Mostrador** acepta la reserva, márcala en "Qué preparar ahora" y avánzala hasta **Entregado**.
-4. **Como Cliente:** en **Mis reservas** verás la tarjeta de control con el sello de cada etapa.
-5. **Como Admin:** revisa el **Resumen** (ventas y gráficos), edita el stock en **Productos** y exporta el **Reporte** a CSV.
+1. **Cliente:** busca un producto, filtra por categoría, pulsa **Separar** y confirma la reserva (Efectivo o Yape, recojo en tienda).
+2. **Personal:** en **Mostrador** acepta la reserva, marca la checklist de preparación y avánzala hasta **Entregado**.
+3. **Cliente:** en **Mis reservas** sigue el estado y descarga la constancia en PDF.
+4. **Admin:** revisa el **Resumen** (ventas, ganancia, conversión), gestiona productos, categorías, personal y roles, edita la información del negocio y exporta el **Reporte** a Excel o PDF.
 
 ## Reiniciar los datos
 
-Para volver a los datos iniciales, ejecuta `database/botica_belen.sql` en tu MySQL (borra y recrea las tablas de `botica_belen_db`).
-Con Docker también puedes hacer `docker compose down -v` y luego `docker compose up -d`: el contenedor lo carga solo.
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+El contenedor vuelve a cargar `database/botica_belen.sql`. Sin Docker, ejecuta ese script en tu MySQL.
+
+## Despliegue
+
+- **Web:** Vercel (carpeta `frontend`). `frontend/vercel.json` reenvía `/api` a la API.
+- **API:** Render con `backend-spring/Dockerfile`. La conexión se define con `DB_URL`, `DB_USER`, `DB_PASS` y `JWT_SECRET`.
+- **Base de datos:** cualquier MySQL compatible (por ejemplo TiDB Cloud), cargando `database/botica_belen.sql`.
 
 ## Notas
 
-- La dirección, el teléfono y el WhatsApp de la tienda que aparecen en la web son **datos de ejemplo** (`frontend/src/app/core/modelos.ts`).
-- Los precios incluyen IGV (18 %). El stock se reserva al crear el pedido y se devuelve si se cancela o se rechaza.
-- Si `npm install` se cuelga, el proyecto ya trae `.npmrc` apuntando al espejo `registry.npmmirror.com`.
+- Los precios incluyen IGV (18 %). El stock se separa al reservar y vuelve si la reserva se cancela, se rechaza o vence.
+- Si `npm install` se cuelga, el `.npmrc` del frontend apunta al espejo `registry.npmmirror.com`; cámbialo a `https://registry.npmjs.org/` si falla.

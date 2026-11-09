@@ -1,5 +1,7 @@
-// URL de la API (Node.js + Express). Cambia aquí si la levantas en otro puerto.
-export const API = 'http://localhost:3200/api';
+import { isDevMode } from '@angular/core';
+
+// En desarrollo apunta a la API local; publicada, Vercel reenvía /api a la API en Render (ver vercel.json).
+export const API = isDevMode() ? 'http://localhost:3200/api' : '/api';
 
 // Permisos del panel de gestión (los mismos que backend-spring/.../seguridad/Permisos.java).
 export type Permiso =

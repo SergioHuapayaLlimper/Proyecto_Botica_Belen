@@ -25,21 +25,6 @@
       "runOptions": { "runOn": "folderOpen" }
     },
     {
-      "label": "API Node (versión anterior)",
-      // Solo para comparar. Usa el mismo puerto 3200: detén Spring antes de lanzarla.
-      "type": "shell",
-      "command": "npm run dev",
-      "options": { "cwd": "${workspaceFolder}/backend" },
-      "windows": { "options": { "cwd": "${workspaceFolder}/backend", "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] } } },
-      "isBackground": true,
-      "problemMatcher": {
-        "owner": "botica-api-node",
-        "pattern": { "regexp": "^x^" },
-        "background": { "activeOnStart": true, "beginsPattern": "Restarting|> node", "endsPattern": "API de Botica Belén lista|No se pudo conectar" }
-      },
-      "presentation": { "reveal": "always", "panel": "dedicated", "group": "botica", "clear": true }
-    },
-    {
       "label": "Web (frontend)",
       "type": "shell",
       "command": "npm start",

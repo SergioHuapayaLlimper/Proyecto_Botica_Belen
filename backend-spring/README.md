@@ -1,6 +1,6 @@
 # Botica Belén — API Spring Boot
 
-API REST en **Spring Boot 3.5 + Java 21 + Spring Data JPA + MySQL**, con las **mismas rutas y JSON** que la versión Node (`../backend`), así que el frontend Angular funciona sin cambios.
+API REST en **Spring Boot 3.5 + Java 21 + Spring Data JPA + MySQL** que consume el frontend Angular (`../frontend`).
 
 ## Arquitectura en capas
 
@@ -45,5 +45,4 @@ Prueba rápida: http://localhost:3200/api/salud
 | `DB_USER` / `DB_PASS` / `DB_NAME` | `root` / `root` / `botica_belen_db` |
 | `JWT_SECRET` | clave de desarrollo (cámbiala, mínimo 32 caracteres) |
 | `CORS_ORIGIN` | `http://localhost:4200,http://localhost:4300` |
-
-Spring y Node usan el mismo puerto 3200: levanta solo uno a la vez.
+| `DB_URL` | URL JDBC completa; si se define, reemplaza a `DB_HOST`/`DB_PORT`/`DB_NAME` (útil en la nube) |

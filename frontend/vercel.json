@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/api/:ruta*", "destination": "https://CAMBIAR-POR-TU-API.onrender.com/api/:ruta*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
