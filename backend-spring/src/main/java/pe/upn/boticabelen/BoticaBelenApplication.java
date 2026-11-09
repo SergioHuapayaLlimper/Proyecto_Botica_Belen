@@ -7,12 +7,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * API REST de Botica Belén.
  * Arquitectura en capas: controller (presentación) -> service (negocio) -> repository (datos) -> entity (modelo).
  */
 @SpringBootApplication
+@EnableScheduling // tareas programadas: vencimiento de reservas no recogidas
 public class BoticaBelenApplication {
 
     private static final Logger log = LoggerFactory.getLogger(BoticaBelenApplication.class);

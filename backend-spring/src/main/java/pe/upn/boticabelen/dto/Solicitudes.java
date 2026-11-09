@@ -31,6 +31,7 @@ public final class Solicitudes {
             String descripcionProducto,
             Integer idCategoria,
             BigDecimal precioProducto,
+            BigDecimal costoProducto,
             Integer stock,
             String estadoProducto,
             Boolean requiere_receta,
@@ -38,6 +39,8 @@ public final class Solicitudes {
             String ubicacionAnaquel) {}
 
     public record StockRequest(Integer stock) {}
+
+    public record PreparadoRequest(Boolean preparado) {}
 
     public record CategoriaRequest(String nombreCategoria, String prefijo, String estadoCategoria) {}
 

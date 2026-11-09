@@ -5,7 +5,7 @@
 import type { Workbook, Worksheet } from 'exceljs';
 import type { jsPDF } from 'jspdf';
 import { aFecha, separarPresentacion } from './formato';
-import { Pedido, Reporte } from './modelos';
+import { Dashboard, Pedido, Reporte } from './modelos';
 import { DatosNegocio } from './negocio.service';
 
 // ---- Colores de la marca ----
@@ -264,6 +264,178 @@ export async function reservaPdf(p: Pedido, negocio: DatosNegocio): Promise<void
 }
 
 // ---------------------------------------------------------------------------------------------
+// Resumen de ventas (dashboard) — PDF con gráficos dibujados en vectores (A4 vertical)
+// ---------------------------------------------------------------------------------------------
+const COLOR_ESTADO: Record<string, [number, number, number]> = {
+  Pendiente: [154, 87, 0],
+  Aceptado: [31, 108, 176],
+  'En preparación': [58, 79, 163],
+  'Listo para entregar': [27, 116, 70],
+  Entregado: [61, 74, 99],
+  Cancelado: [181, 29, 42],
+  Rechazado: [138, 42, 51],
+};
+
+/** Título de bloque con una línea fina debajo. Devuelve la Y donde empieza el contenido. */
+function tituloBloque(doc: jsPDF, texto: string, nota: string, x: number, y: number, ancho: number): number {
+  doc.setFont('helvetica', 'bold').setFontSize(11).setTextColor(...TINTA).text(texto, x, y);
+  if (nota) doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(...GRIS).text(nota, x + ancho, y, { align: 'right' });
+  doc.setDrawColor(...RAYA).setLineWidth(0.2).line(x, y + 2, x + ancho, y + 2);
+  return y + 7;
+}
+
+/** Barras verticales (ventas por mes). La última (mes actual) va en rojo. */
+function barrasVerticales(doc: jsPDF, datos: { etiqueta: string; valor: number }[], x: number, y: number, ancho: number, alto: number): void {
+  const max = Math.max(1, ...datos.map((d) => d.valor));
+  const paso = ancho / datos.length;
+  const barra = paso * 0.56;
+  const base = y + alto;
+  doc.setDrawColor(...GRIS).setLineWidth(0.3).line(x, base, x + ancho, base);
+  datos.forEach((d, i) => {
+    const h = (d.valor / max) * (alto - 8);
+    const bx = x + i * paso + (paso - barra) / 2;
+    if (h > 0) {
+      doc.setFillColor(...(i === datos.length - 1 ? ROJO : [31, 108, 176] as [number, number, number]));
+      doc.rect(bx, base - h, barra, h, 'F');
+      doc.setFont('helvetica', 'normal').setFontSize(6.5).setTextColor(...GRIS);
+      doc.text(Math.round(d.valor).toLocaleString('es-PE'), bx + barra / 2, base - h - 1.5, { align: 'center' });
+    }
+    doc.setFont('helvetica', 'normal').setFontSize(7.5).setTextColor(...GRIS);
+    const mes = d.etiqueta.charAt(0).toUpperCase() + d.etiqueta.slice(1); // "ene" → "Ene", como en pantalla
+    doc.text(mes, bx + barra / 2, base + 4.5, { align: 'center' });
+  });
+}
+
+/** Barras horizontales (por estado o por forma de pago) con el valor a la derecha. */
+function barrasHorizontales(
+  doc: jsPDF,
+  datos: { etiqueta: string; valor: number; texto: string; color: [number, number, number] }[],
+  x: number,
+  y: number,
+  ancho: number,
+): number {
+  if (!datos.length) {
+    doc.setFont('helvetica', 'italic').setFontSize(8.5).setTextColor(...GRIS).text('Sin datos en el periodo.', x, y + 3);
+    return y + 8;
+  }
+  const max = Math.max(1, ...datos.map((d) => d.valor));
+  const rotulo = 34;
+  const valor = 22;
+  const pista = ancho - rotulo - valor - 4;
+  datos.forEach((d, i) => {
+    const yy = y + i * 7;
+    doc.setFont('helvetica', 'normal').setFontSize(8.5).setTextColor(20, 33, 61).text(d.etiqueta, x, yy + 2.5);
+    doc.setFillColor(236, 240, 245).rect(x + rotulo, yy, pista, 3.2, 'F');
+    doc.setFillColor(...d.color).rect(x + rotulo, yy, Math.max(0.8, (d.valor / max) * pista), 3.2, 'F');
+    doc.setFont('helvetica', 'bold').setFontSize(8.5).setTextColor(...TINTA).text(d.texto, x + ancho, yy + 2.5, { align: 'right' });
+  });
+  return y + datos.length * 7;
+}
+
+export async function resumenPdf(d: Dashboard, negocio: DatosNegocio, meses: { etiqueta: string; valor: number }[]): Promise<void> {
+  const { jsPDF, autoTable } = await cargarPdf();
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const ancho = doc.internal.pageSize.getWidth();
+  const m = 14;
+  const util = ancho - m * 2;
+  let y = await encabezadoPdf(doc, negocio, 'Resumen de ventas', `Del ${fechaLarga(d.desde)} al ${fechaLarga(d.hasta)}`);
+
+  // ---- Cifra principal y datos del periodo ----
+  const k = d.kpis;
+  const anulados = d.porEstado.filter((e) => ANULADOS.includes(e.estado)).reduce((s, e) => s + e.total, 0);
+  doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...GRIS).text('Vendido en el periodo (pedidos no anulados)', m, y + 2);
+  doc.setFont('helvetica', 'bold').setFontSize(26).setTextColor(...TINTA).text(dinero(k.ventas), m, y + 13);
+  const datosMenores: [string, string][] = [
+    ['Pedidos válidos', `${k.pedidosValidos} de ${k.pedidos}`],
+    ['Ticket promedio', dinero(k.ticketPromedio)],
+    ['Anulados', String(anulados)],
+    ['Clientes registrados', String(k.clientes)],
+    ['Ganancia bruta', `${dinero(k.ganancia)} (${k.margen} %)`],
+    ['Conversión de carritos', k.carritos ? `${k.conversion} % (${k.carritosConvertidos} de ${k.carritos})` : 'Sin datos'],
+  ];
+  datosMenores.forEach(([r, v], i) => {
+    const x = m + 95 + (i % 2) * 46;
+    const yy = y + 2 + Math.floor(i / 2) * 10;
+    doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(...GRIS).text(r, x, yy);
+    doc.setFont('helvetica', 'bold').setFontSize(11).setTextColor(...TINTA).text(v, x, yy + 5);
+  });
+  y += 31;
+
+  // Por atender ahora
+  doc.setFillColor(...VELO).setDrawColor(...RAYA).rect(m, y, util, 10, 'FD');
+  const atender = `Por atender ahora:   ${k.pendientes} ${k.pendientes === 1 ? 'reserva pendiente' : 'reservas pendientes'}      ${k.agotados} ${k.agotados === 1 ? 'producto agotado' : 'productos agotados'}      ${k.stockBajo} con 5 unidades o menos`;
+  doc.setFont('helvetica', 'bold').setFontSize(9).setTextColor(...TINTA).text(atender, m + 4, y + 6.3);
+  y += 17;
+
+  // ---- Ventas por mes ----
+  y = tituloBloque(doc, 'Ventas por mes', 'Últimos 12 meses, en soles', m, y, util);
+  barrasVerticales(doc, meses, m, y, util, 52);
+  y += 64;
+
+  // ---- Pedidos por estado y formas de pago, lado a lado ----
+  const mitad = (util - 8) / 2;
+  const yEstados = tituloBloque(doc, 'Pedidos por estado', 'En el periodo', m, y, mitad);
+  const finEstados = barrasHorizontales(
+    doc,
+    d.porEstado.map((e) => ({ etiqueta: e.estado, valor: e.total, texto: String(e.total), color: COLOR_ESTADO[e.estado] ?? TINTA })),
+    m,
+    yEstados,
+    mitad,
+  );
+  const totalPagos = d.metodosPago.reduce((s, p) => s + p.total, 0) || 1;
+  const yPagos = tituloBloque(doc, 'Formas de pago', 'Pedidos válidos', m + mitad + 8, y, mitad);
+  const finPagos = barrasHorizontales(
+    doc,
+    d.metodosPago.map((p) => ({ etiqueta: p.metodo, valor: p.total, texto: `${p.total} (${Math.round((p.total / totalPagos) * 100)} %)`, color: [31, 108, 176] })),
+    m + mitad + 8,
+    yPagos,
+    mitad,
+  );
+  y = Math.max(finEstados, finPagos) + 8;
+
+  // ---- Tablas: más reservados y por reponer ----
+  const tabla = {
+    theme: 'grid' as const,
+    styles: { font: 'helvetica', fontSize: 8.5, cellPadding: 2, lineColor: RAYA, lineWidth: 0.1, textColor: [20, 33, 61] as [number, number, number] },
+    headStyles: { fillColor: TINTA, textColor: 255, fontStyle: 'bold' as const },
+    margin: { left: m, right: m, bottom: 16 },
+  };
+  y = tituloBloque(doc, 'Más reservados', 'Unidades en el periodo', m, y, util);
+  autoTable(doc, {
+    ...tabla,
+    startY: y,
+    head: [['N.°', 'Producto', 'Unidades', 'Monto']],
+    body: d.topProductos.length
+      ? d.topProductos.map((p, i) => [i + 1, p.nombreProducto, p.unidades, dinero(p.monto)])
+      : [['', 'Sin ventas en este periodo.', '', '']],
+    columnStyles: { 0: { halign: 'center', cellWidth: 12 }, 2: { halign: 'right', cellWidth: 24 }, 3: { halign: 'right', cellWidth: 30 } },
+  });
+  y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? y) + 9;
+
+  if (y > doc.internal.pageSize.getHeight() - 50) {
+    doc.addPage();
+    y = 20;
+  }
+  y = tituloBloque(doc, 'Por reponer', 'Productos activos con 5 unidades o menos', m, y, util);
+  autoTable(doc, {
+    ...tabla,
+    startY: y,
+    head: [['Código', 'Producto', 'Stock']],
+    body: d.stockBajo.length ? d.stockBajo.map((p) => [p.codigoProducto, p.nombreProducto, p.stock === 0 ? 'Agotado' : `Quedan ${p.stock}`]) : [['', 'Todo el stock está al día.', '']],
+    columnStyles: { 0: { cellWidth: 26 }, 2: { halign: 'right', cellWidth: 28 } },
+    didParseCell: (c) => {
+      if (c.section === 'body' && c.column.index === 2 && c.cell.raw === 'Agotado') {
+        c.cell.styles.textColor = ROJO;
+        c.cell.styles.fontStyle = 'bold';
+      }
+    },
+  });
+
+  pieDePagina(doc, `${negocio.nombre_negocio || 'Botica Belén'}: resumen de ventas. Montos en soles con IGV incluido.`);
+  doc.save(`resumen-ventas-${d.desde}-al-${d.hasta}.pdf`);
+}
+
+// ---------------------------------------------------------------------------------------------
 // Reporte de ventas — Excel (.xlsx con formato)
 // ---------------------------------------------------------------------------------------------
 const XL = {
@@ -338,16 +510,18 @@ export async function reporteExcel(rep: Reporte, negocio: DatosNegocio, filtros:
     { key: 'gravada', width: 15 },
     { key: 'igv', width: 13 },
     { key: 'total', width: 15 },
+    { key: 'costo', width: 14 },
+    { key: 'ganancia', width: 14 },
   ];
-  tituloHoja(hoja, 9, `${nombre}: reporte de ventas`, [`${periodo}    |    ${filtro}`, `Generado el ${ahora()}. Montos en soles con IGV incluido.`]);
-  encabezadoTabla(hoja, 5, ['N.°', 'Fecha', 'Código', 'Cliente', 'Pago', 'Estado', 'Op. gravada', 'IGV', 'Total']);
+  tituloHoja(hoja, 11, `${nombre}: reporte de ventas`, [`${periodo}    |    ${filtro}`, `Generado el ${ahora()}. Montos en soles con IGV incluido.`]);
+  encabezadoTabla(hoja, 5, ['N.°', 'Fecha', 'Código', 'Cliente', 'Pago', 'Estado', 'Op. gravada', 'IGV', 'Total', 'Costo', 'Ganancia']);
 
   const primera = 6;
   rep.pedidos.forEach((p, i) => {
     const fila = hoja.getRow(primera + i);
-    fila.values = [i + 1, aFecha(p.fechaHoraToma), p.codigoPedido, p.nombreCliente ?? '', p.metodoPago ?? '', p.estadoPedido, p.subtotalGeneral, p.igv, p.total];
+    fila.values = [i + 1, aFecha(p.fechaHoraToma), p.codigoPedido, p.nombreCliente ?? '', p.metodoPago ?? '', p.estadoPedido, p.subtotalGeneral, p.igv, p.total, p.costo ?? null, p.ganancia ?? null];
     fila.getCell(2).numFmt = 'dd/mm/yyyy hh:mm';
-    [7, 8, 9].forEach((c) => (fila.getCell(c).numFmt = MONEDA));
+    [7, 8, 9, 10, 11].forEach((c) => (fila.getCell(c).numFmt = MONEDA));
     fila.getCell(1).alignment = { horizontal: 'center' };
     const colores = ESTADO_XL[p.estadoPedido];
     if (colores) {
@@ -355,9 +529,9 @@ export async function reporteExcel(rep: Reporte, negocio: DatosNegocio, filtros:
       fila.getCell(6).font = { bold: true, color: { argb: colores.texto } };
     }
     if (ANULADOS.includes(p.estadoPedido)) {
-      [1, 2, 3, 4, 5, 7, 8, 9].forEach((c) => (fila.getCell(c).font = { italic: true, color: { argb: 'FF8A93A5' } }));
+      [1, 2, 3, 4, 5, 7, 8, 9, 10, 11].forEach((c) => (fila.getCell(c).font = { italic: true, color: { argb: 'FF8A93A5' } }));
     }
-    for (let c = 1; c <= 9; c++) fila.getCell(c).border = bordes;
+    for (let c = 1; c <= 11; c++) fila.getCell(c).border = bordes;
   });
 
   // Fila de totales con fórmulas: suman solo los pedidos no anulados (las celdas siguen vivas si se editan).
@@ -371,14 +545,18 @@ export async function reporteExcel(rep: Reporte, negocio: DatosNegocio, filtros:
   ft.getCell(7).value = suma('G', rep.totales.monto - rep.totales.igv);
   ft.getCell(8).value = suma('H', rep.totales.igv);
   ft.getCell(9).value = suma('I', rep.totales.monto);
-  for (let c = 6; c <= 9; c++) {
+  ft.getCell(10).value = suma('J', rep.totales.costo);
+  ft.getCell(11).value = suma('K', rep.totales.ganancia);
+  for (let c = 6; c <= 11; c++) {
     const cel = ft.getCell(c);
     cel.font = { bold: true, color: { argb: XL.tinta } };
     cel.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: XL.velo } };
     cel.border = { top: { style: 'medium', color: { argb: XL.tinta } }, bottom: borde, left: borde, right: borde };
     if (c > 6) cel.numFmt = MONEDA;
   }
-  if (rep.pedidos.length) hoja.autoFilter = { from: { row: 5, column: 1 }, to: { row: ultima, column: 9 } };
+  if (rep.pedidos.length) hoja.autoFilter = { from: { row: 5, column: 1 }, to: { row: ultima, column: 11 } };
+  hoja.getRow(ultima + 3).getCell(6).value = 'Costo y ganancia solo de productos con costo de compra registrado.';
+  hoja.getRow(ultima + 3).getCell(6).font = { italic: true, size: 9, color: { argb: 'FF8A93A5' } };
 
   // ---- Hoja 2: Resumen ----
   const res = libro.addWorksheet('Resumen');
@@ -394,6 +572,9 @@ export async function reporteExcel(rep: Reporte, negocio: DatosNegocio, filtros:
     ['Vendido (con IGV)', rep.totales.monto, MONEDA],
     ['IGV incluido', rep.totales.igv, MONEDA],
     ['Ticket promedio', validos.length ? rep.totales.monto / validos.length : 0, MONEDA],
+    ['Costo de lo vendido', rep.totales.costo, MONEDA],
+    ['Ganancia bruta', rep.totales.ganancia, MONEDA],
+    ['Margen', rep.totales.costo + rep.totales.ganancia > 0 ? rep.totales.ganancia / (rep.totales.costo + rep.totales.ganancia) : 0, '0.0%'],
   ];
   indicadores.forEach(([r, v, fmt], i) => {
     const fila = res.getRow(5 + i);

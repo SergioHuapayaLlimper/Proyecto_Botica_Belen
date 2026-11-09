@@ -22,7 +22,7 @@
     </label>
     <label class="casilla">
       <span class="rotulo">Categoría</span>
-      <select name="categoria" [(ngModel)]="categoria" (change)="cargar()">
+      <select name="categoria" [ngModel]="categoria" (ngModelChange)="categoria = $event; cargar()">
         <option value="">Todas</option>
         @for (c of categorias(); track c.idCategoria) {
           <option [value]="c.idCategoria">{{ c.nombreCategoria }}</option>
@@ -31,7 +31,7 @@
     </label>
     <label class="casilla">
       <span class="rotulo">Stock</span>
-      <select name="stock" [(ngModel)]="stock" (change)="cargar()">
+      <select name="stock" [ngModel]="stock" (ngModelChange)="stock = $event; cargar()">
         <option value="">Todos</option>
         <option value="bajo">Stock bajo (1 a 5)</option>
         <option value="agotado">Agotados</option>
@@ -39,7 +39,7 @@
     </label>
     <label class="casilla">
       <span class="rotulo">Ordenar</span>
-      <select name="orden" [(ngModel)]="orden" (change)="cargar()">
+      <select name="orden" [ngModel]="orden" (ngModelChange)="orden = $event; cargar()">
         <option value="nombre_asc">Nombre (A–Z)</option>
         <option value="stock_asc">Menos stock primero</option>
         <option value="stock_desc">Más stock primero</option>

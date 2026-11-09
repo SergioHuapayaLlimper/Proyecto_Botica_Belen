@@ -353,3 +353,15 @@ tr.recien td {
     padding-inline: var(--e4);
   }
 }
+
+// Pedido en preparación con productos sin separar: en lugar del botón "Marcar como listo".
+.falta {
+  padding: 4px 10px;
+  font-size: var(--t-chico);
+  font-weight: 600;
+  color: var(--aviso);
+  white-space: nowrap;
+  background: #fff7e8;
+  border: 1px dashed #e0b25a;
+  border-radius: var(--radio);
+}

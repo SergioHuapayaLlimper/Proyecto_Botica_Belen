@@ -2,6 +2,7 @@ package pe.upn.boticabelen.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,9 +13,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pe.upn.boticabelen.dto.Respuestas.ItemCarritoDto;
 import pe.upn.boticabelen.dto.Solicitudes.ItemRequest;
+import pe.upn.boticabelen.entity.CarritoSesion;
 import pe.upn.boticabelen.entity.Producto;
 import pe.upn.boticabelen.entity.Usuario;
 import pe.upn.boticabelen.excepcion.ApiException;
+import pe.upn.boticabelen.repository.CarritoSesionRepository;
 import pe.upn.boticabelen.repository.ProductoRepository;
 import pe.upn.boticabelen.repository.UsuarioRepository;
 
@@ -29,11 +32,14 @@ public class CarritoService {
 
     private final UsuarioRepository usuarioRepository;
     private final ProductoRepository productoRepository;
+    private final CarritoSesionRepository carritoSesionRepository;
     private final ObjectMapper mapper;
 
-    public CarritoService(UsuarioRepository usuarioRepository, ProductoRepository productoRepository, ObjectMapper mapper) {
+    public CarritoService(UsuarioRepository usuarioRepository, ProductoRepository productoRepository,
+                          CarritoSesionRepository carritoSesionRepository, ObjectMapper mapper) {
         this.usuarioRepository = usuarioRepository;
         this.productoRepository = productoRepository;
+        this.carritoSesionRepository = carritoSesionRepository;
         this.mapper = mapper;
     }
 
@@ -72,7 +78,18 @@ public class CarritoService {
         }
         Usuario u = usuarioRepository.findById(idUsuario).orElseThrow(() -> ApiException.notFound("Usuario no encontrado."));
         u.setCarritoJson(json);
+        registrarSesion(idUsuario, !detalle.isEmpty());
         return detalle;
+    }
+
+    /**
+     * RF22: el primer producto abre un "carrito iniciado"; si el cliente lo vacía sin reservar, se cierra.
+     * Al reservar, PedidoService le asigna el pedido (carrito convertido).
+     */
+    private void registrarSesion(Integer idUsuario, boolean conProductos) {
+        var abierto = carritoSesionRepository.findFirstByIdUsuarioAndIdPedidoIsNullAndCerradoEnIsNullOrderByIdCarritoDesc(idUsuario);
+        if (conProductos && abierto.isEmpty()) carritoSesionRepository.save(new CarritoSesion(idUsuario));
+        if (!conProductos) abierto.ifPresent(c -> c.setCerradoEn(LocalDateTime.now()));
     }
 
     /** Acepta el formato objeto (PHP) o arreglo. Si el JSON está dañado, devuelve un carrito vacío. */

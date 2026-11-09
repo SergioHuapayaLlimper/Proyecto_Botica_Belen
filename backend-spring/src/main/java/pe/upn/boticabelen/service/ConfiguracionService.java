@@ -17,7 +17,7 @@ public class ConfiguracionService {
     /** Únicas claves que se pueden guardar (las demás se ignoran). */
     public static final List<String> CLAVES = List.of(
             "nombre_negocio", "direccion", "referencia", "mapa_lat", "mapa_lng", "horario_atencion", "metodos_pago",
-            "telefono_contacto", "correo_contacto", "whatsapp_numero", "whatsapp_mensaje", "yape_numero");
+            "telefono_contacto", "correo_contacto", "whatsapp_numero", "whatsapp_mensaje", "yape_numero", "horas_vencimiento");
 
     private static final Pattern CORREO = Pattern.compile("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$");
 
@@ -25,6 +25,16 @@ public class ConfiguracionService {
 
     public ConfiguracionService(ConfiguracionRepository repo) {
         this.repo = repo;
+    }
+
+    /** Horas para que venza una reserva no recogida (0 = no vencen). */
+    @Transactional(readOnly = true)
+    public int horasVencimiento() {
+        try {
+            return Integer.parseInt(obtener().getOrDefault("horas_vencimiento", "24").trim());
+        } catch (NumberFormatException e) {
+            return 24;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -68,6 +78,9 @@ public class ConfiguracionService {
             String numero = d.get("whatsapp_numero").replaceAll("\\D", "");
             d.put("whatsapp_numero", numero);
             if (!numero.isEmpty() && !numero.matches("\\d{10,15}")) errores.append("El WhatsApp debe incluir el código de país (por ejemplo, 51987654321). ");
+        }
+        if (d.containsKey("horas_vencimiento") && !d.get("horas_vencimiento").matches("\\d{1,3}")) {
+            errores.append("El vencimiento debe ser un número de horas (0 para desactivarlo). ");
         }
         for (Map.Entry<String, String> e : d.entrySet()) {
             if (e.getValue().length() > 500) errores.append("El campo ").append(e.getKey()).append(" es demasiado largo. ");

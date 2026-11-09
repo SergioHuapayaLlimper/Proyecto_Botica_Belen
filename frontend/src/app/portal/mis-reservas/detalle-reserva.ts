@@ -30,6 +30,10 @@ import { TarjetaControl } from '../../ui/tarjeta-control';
       @if (pedido(); as p) {
         <app-tarjeta-control [pedido]="p" [recienCreada]="confirmada()" />
 
+        @if (limite(p); as fin) {
+          <p class="plazo"><app-icono nombre="reloj" [tam]="18" /> Recógela antes del {{ fin }}. Si no, se cancela sola y los productos vuelven a la venta.</p>
+        }
+
         <div class="acciones no-imprimir">
           <button type="button" class="btn btn--borde" (click)="descargarPdf(p)"><app-icono nombre="documento" [tam]="18" /> Descargar constancia (PDF)</button>
           @if (confirmada()) {
@@ -58,6 +62,7 @@ import { TarjetaControl } from '../../ui/tarjeta-control';
     .acciones { display: flex; flex-wrap: wrap; gap: var(--e3); margin-top: var(--e5); }
     .confirmar-cancelar { display: flex; flex-wrap: wrap; gap: var(--e3); align-items: center; padding: var(--e3) var(--e4); background: #fdf0f1; border: 1px solid #f1c4c9; border-radius: var(--radio); }
     .confirmar-cancelar p { font-weight: 600; color: #7d1520; }
+    .plazo { display: flex; gap: var(--e2); align-items: center; margin-top: var(--e4); font-weight: 600; color: var(--aviso); }
     .cargando { padding: var(--e7); text-align: center; color: var(--texto-2); }
   `,
 })
@@ -99,6 +104,15 @@ export class DetalleReserva implements OnInit {
   }
 
   private readonly negocio = inject(NegocioService);
+
+  /** Fecha límite para recoger (null si no vence o si la reserva ya se cerró). */
+  protected limite(p: Pedido): string | null {
+    const horas = this.negocio.horasVencimiento();
+    if (!horas || !['Pendiente', 'Aceptado', 'En preparación', 'Listo para entregar'].includes(p.estadoPedido)) return null;
+    const fin = new Date(new Date(p.fechaHoraToma).getTime() + horas * 3_600_000);
+    if (Number.isNaN(fin.getTime())) return null;
+    return fin.toLocaleString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  }
 
   protected descargarPdf(p: Pedido): void {
     reservaPdf(p, this.negocio.datos()).catch(() => this.avisos.error('No se pudo generar el PDF. Inténtalo de nuevo.'));

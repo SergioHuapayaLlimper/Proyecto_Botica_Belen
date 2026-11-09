@@ -35,11 +35,27 @@ import { GestionService } from '../gestion.service';
             } @else if (avances().length === 0 && !anulables().length) {
               <p class="nota">Este pedido ya está cerrado: {{ p.estadoPedido.toLowerCase() }}.</p>
             } @else {
+              @if (enChecklist()) {
+                <!-- Checklist: cada producto se marca al separarlo del anaquel (se guarda en la BD). -->
+                <fieldset class="checklist">
+                  <legend class="rotulo">Productos separados ({{ separados() }} de {{ p.detalles.length }})</legend>
+                  @for (d of p.detalles; track d.idDetallePedido) {
+                    <label class="item" [class.hecho]="d.preparado">
+                      <input type="checkbox" [checked]="d.preparado" [disabled]="marcando() === d.idDetallePedido" (change)="marcar(d.idDetallePedido, !d.preparado)" />
+                      <span><strong class="cifra">{{ d.cantidad }} ×</strong> {{ d.nombreProducto }}</span>
+                    </label>
+                  }
+                </fieldset>
+              }
               <div class="botones">
                 @for (e of avances(); track e) {
-                  <button type="button" class="btn btn--grande btn--bloque" [class.btn--tinta]="e !== 'Entregado'" [disabled]="ocupado()" (click)="cambiar(e)">
+                  <button type="button" class="btn btn--grande btn--bloque" [class.btn--tinta]="e !== 'Entregado'"
+                    [disabled]="ocupado() || (e === 'Listo para entregar' && faltan() > 0)" (click)="cambiar(e)">
                     <app-icono nombre="check" [tam]="20" /> {{ accion[e] }}
                   </button>
+                  @if (e === 'Listo para entregar' && faltan() > 0) {
+                    <p class="ayuda-campo">Marca los {{ faltan() }} productos que faltan para poder marcarlo como listo.</p>
+                  }
                 }
               </div>
 
@@ -78,6 +94,12 @@ import { GestionService } from '../gestion.service';
     </div>
   `,
   styles: `
+    .checklist { display: grid; gap: 4px; padding: 0; margin: 0 0 var(--e4); border: 0; }
+    .checklist legend { margin-bottom: var(--e2); padding: 0; }
+    .item { display: flex; gap: var(--e2); align-items: flex-start; padding: var(--e2); font-size: var(--t-chico); cursor: pointer; border-radius: var(--radio); }
+    .item:hover { background: var(--velo); }
+    .item input { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--ok); flex-shrink: 0; }
+    .item.hecho span { color: var(--texto-2); text-decoration: line-through; }
     .arriba { display: flex; flex-wrap: wrap; gap: var(--e3); align-items: center; justify-content: space-between; }
     .disposicion { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--e5); align-items: start; }
     .panel { position: sticky; top: var(--e4); display: grid; gap: var(--e4); padding: var(--e5); }
@@ -109,6 +131,29 @@ export class PedidoGestion implements OnInit {
   protected readonly accion = ACCION_ESTADO;
 
   protected readonly puedeActuar = computed(() => this.auth.puede('pedidos_estado'));
+  protected readonly marcando = signal<number | null>(null);
+
+  // La checklist se usa mientras el pedido está aceptado o en preparación.
+  protected readonly enChecklist = computed(() => ['Aceptado', 'En preparación'].includes(this.pedido()?.estadoPedido ?? ''));
+  protected readonly separados = computed(() => (this.pedido()?.detalles ?? []).filter((d) => d.preparado).length);
+  protected readonly faltan = computed(() => (this.pedido()?.detalles.length ?? 0) - this.separados());
+
+  protected marcar(idDetalle: number, preparado: boolean): void {
+    const p = this.pedido();
+    if (!p) return;
+    this.marcando.set(idDetalle);
+    this.gestion.marcarPreparado(p.idPedido, idDetalle, preparado).subscribe({
+      next: (actualizado) => {
+        this.marcando.set(null);
+        this.pedido.set(actualizado);
+        if (actualizado.estadoPedido !== p.estadoPedido) this.gestion.refrescar();
+      },
+      error: (e) => {
+        this.marcando.set(null);
+        this.avisos.error(mensajeError(e));
+      },
+    });
+  }
   protected readonly avances = computed(() => (this.pedido()?.siguientes ?? []).filter((e) => e !== 'Cancelado' && e !== 'Rechazado'));
   protected readonly anulables = computed(() => (this.pedido()?.siguientes ?? []).filter((e) => e === 'Cancelado' || e === 'Rechazado'));
 

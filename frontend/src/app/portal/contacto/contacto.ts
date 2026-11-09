@@ -47,7 +47,7 @@ import { Mapa } from '../../ui/mapa';
             @if (d().correo_contacto) {
               <div>
                 <dt><app-icono nombre="documento" [tam]="20" /> Correo</dt>
-                <dd><a [href]="'mailto:' + d().correo_contacto">{{ d().correo_contacto }}</a></dd>
+                <dd>{{ d().correo_contacto }}</dd>
               </div>
             }
             @if (d().metodos_pago) {

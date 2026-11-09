@@ -65,6 +65,11 @@ export class GestionService {
     return this.http.patch<Pedido>(`${API}/gestion/pedidos/${id}/estado`, { estado, motivo });
   }
 
+  // Checklist del mostrador: marca un producto del pedido como separado del anaquel.
+  marcarPreparado(idPedido: number, idDetalle: number, preparado: boolean): Observable<Pedido> {
+    return this.http.patch<Pedido>(`${API}/gestion/pedidos/${idPedido}/detalles/${idDetalle}`, { preparado });
+  }
+
   preparar(): Observable<LineaPreparar[]> {
     return this.http.get<LineaPreparar[]>(`${API}/gestion/preparar`);
   }

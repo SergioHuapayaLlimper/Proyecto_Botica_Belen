@@ -4,6 +4,11 @@
       <h1>Resumen de ventas</h1>
       <p>Las ventas suman solo pedidos no anulados. Montos en soles con IGV incluido.</p>
     </div>
+    @if (datos()) {
+      <button type="button" class="btn btn--borde" [disabled]="exportando()" (click)="descargarPdf()">
+        <app-icono nombre="documento" [tam]="18" /> {{ exportando() ? 'Generando…' : 'Descargar PDF' }}
+      </button>
+    }
   </header>
 
   <div class="periodo">
@@ -38,6 +43,27 @@
         <dl class="datos-menores">
           <div><dt>Anuladas</dt><dd class="cifra">{{ anulados() }}</dd></div>
           <div><dt>Clientes registrados</dt><dd class="cifra">{{ d.kpis.clientes }}</dd></div>
+        </dl>
+
+        <!-- RF21 y RF22 -->
+        <dl class="indicadores">
+          <div>
+            <dt>Ganancia bruta</dt>
+            <dd class="cifra">{{ soles(d.kpis.ganancia) }}</dd>
+            <dd class="nota-chica cifra">
+              Margen de {{ d.kpis.margen }} % sobre un costo de {{ soles(d.kpis.costo) }}.
+              @if (d.kpis.ventasSinCosto > 0) {
+                {{ soles(d.kpis.ventasSinCosto) }} vendidos no tienen costo registrado.
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Conversión de carritos</dt>
+            <dd class="cifra">{{ d.kpis.carritos ? d.kpis.conversion + ' %' : 'Sin datos' }}</dd>
+            <dd class="nota-chica cifra">
+              {{ d.kpis.carritosConvertidos }} de {{ d.kpis.carritos }} {{ d.kpis.carritos === 1 ? 'carrito iniciado terminó' : 'carritos iniciados terminaron' }} en reserva.
+            </dd>
+          </div>
         </dl>
       </div>
 

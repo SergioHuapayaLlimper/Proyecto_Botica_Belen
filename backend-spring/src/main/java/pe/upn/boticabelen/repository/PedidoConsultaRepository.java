@@ -51,13 +51,13 @@ public class PedidoConsultaRepository {
 
         List<DetalleDto> detalles = sql.lista("""
                 SELECT d.idDetallePedido, d.idProducto, pr.nombreProducto, pr.codigoProducto, pr.imagenURL,
-                       d.cantidad, d.precioUnitario, d.subtotal
+                       d.cantidad, d.precioUnitario, d.subtotal, d.preparado
                 FROM detalle_pedido d LEFT JOIN producto pr ON pr.idProducto = d.idProducto
                 WHERE d.idPedido = :id ORDER BY pr.nombreProducto""", Map.of("id", idPedido))
                 .stream()
                 .map(x -> new DetalleDto(entero(x, "idDetallePedido"), entero(x, "idProducto"), texto(x, "nombreProducto"),
                         texto(x, "codigoProducto"), texto(x, "imagenURL"), entero(x, "cantidad"),
-                        decimal(x, "precioUnitario"), decimal(x, "subtotal")))
+                        decimal(x, "precioUnitario"), decimal(x, "subtotal"), bandera(x, "preparado") == 1))
                 .toList();
 
         String estado = texto(t, "estadoPedido");
@@ -99,7 +99,8 @@ public class PedidoConsultaRepository {
     public List<LineaPrepararDto> porPreparar() {
         return sql.lista("""
                 SELECT p.idPedido, p.codigoPedido, p.estadoPedido, %s AS fechaHoraToma, u.nombre AS nombreCliente,
-                       d.idProducto, pr.codigoProducto, pr.nombreProducto, pr.ubicacionAnaquel, d.cantidad
+                       d.idDetallePedido, d.idProducto, pr.codigoProducto, pr.nombreProducto, pr.ubicacionAnaquel,
+                       d.cantidad, d.preparado
                 FROM pedido p
                 JOIN detalle_pedido d ON d.idPedido = p.idPedido
                 LEFT JOIN producto pr ON pr.idProducto = d.idProducto
@@ -108,9 +109,9 @@ public class PedidoConsultaRepository {
                 ORDER BY pr.ubicacionAnaquel, pr.nombreProducto, p.fechaHoraToma""".formatted(FECHA))
                 .stream()
                 .map(t -> new LineaPrepararDto(entero(t, "idPedido"), texto(t, "codigoPedido"), texto(t, "estadoPedido"),
-                        texto(t, "fechaHoraToma"), texto(t, "nombreCliente"), entero(t, "idProducto"),
-                        texto(t, "codigoProducto"), texto(t, "nombreProducto"), texto(t, "ubicacionAnaquel"),
-                        entero(t, "cantidad")))
+                        texto(t, "fechaHoraToma"), texto(t, "nombreCliente"), entero(t, "idDetallePedido"),
+                        entero(t, "idProducto"), texto(t, "codigoProducto"), texto(t, "nombreProducto"),
+                        texto(t, "ubicacionAnaquel"), entero(t, "cantidad"), bandera(t, "preparado") == 1))
                 .toList();
     }
 

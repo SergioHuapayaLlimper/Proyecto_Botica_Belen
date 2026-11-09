@@ -33,6 +33,10 @@ public class Producto {
     @Column(name = "precioProducto", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioProducto;
 
+    /** RF21: costo de compra unitario (para calcular la ganancia). */
+    @Column(name = "costoProducto", precision = 10, scale = 2)
+    private BigDecimal costoProducto;
+
     @Column(name = "stock", nullable = false)
     private Integer stock = 0;
 
@@ -63,6 +67,8 @@ public class Producto {
     public void setDescripcionProducto(String descripcionProducto) { this.descripcionProducto = descripcionProducto; }
     public BigDecimal getPrecioProducto() { return precioProducto; }
     public void setPrecioProducto(BigDecimal precioProducto) { this.precioProducto = precioProducto; }
+    public BigDecimal getCostoProducto() { return costoProducto; }
+    public void setCostoProducto(BigDecimal costoProducto) { this.costoProducto = costoProducto; }
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
     public String getEstadoProducto() { return estadoProducto; }

@@ -48,7 +48,7 @@ public final class Respuestas {
     /** Producto completo para el panel de gestión. */
     public record ProductoDto(Integer idProducto, Integer idCategoria, String nombreCategoria, String codigoProducto,
                               String nombreProducto, String principioActivo, String descripcionProducto,
-                              BigDecimal precioProducto, Integer stock,
+                              BigDecimal precioProducto, BigDecimal costoProducto, Integer stock,
                               String estadoProducto, Integer requiere_receta, String imagenURL, String ubicacionAnaquel) {}
 
     // ---------- Carrito y pedidos ----------
@@ -67,7 +67,8 @@ public final class Respuestas {
                                    Long unidades) {}
 
     public record DetalleDto(Integer idDetallePedido, Integer idProducto, String nombreProducto, String codigoProducto,
-                             String imagenURL, Integer cantidad, BigDecimal precioUnitario, BigDecimal subtotal) {}
+                             String imagenURL, Integer cantidad, BigDecimal precioUnitario, BigDecimal subtotal,
+                             boolean preparado) {}
 
     public record PedidoDetalleDto(Integer idPedido, String codigoPedido, Integer idUsuario, String fechaHoraToma,
                                    String estadoPedido, String metodoPago, String observaciones, BigDecimal subtotalGeneral,
@@ -75,14 +76,20 @@ public final class Respuestas {
                                    String telefonoCliente, List<String> siguientes, List<DetalleDto> detalles) {}
 
     public record LineaPrepararDto(Integer idPedido, String codigoPedido, String estadoPedido, String fechaHoraToma,
-                                   String nombreCliente, Integer idProducto, String codigoProducto, String nombreProducto,
-                                   String ubicacionAnaquel, Integer cantidad) {}
+                                   String nombreCliente, Integer idDetallePedido, Integer idProducto, String codigoProducto,
+                                   String nombreProducto, String ubicacionAnaquel, Integer cantidad, boolean preparado) {}
 
     public record PendientesDto(Long pendientes, Integer ultimoId) {}
 
     // ---------- Dashboard y reporte ----------
+    /**
+     * ganancia/margen (RF21): sobre las ventas de productos con costo registrado.
+     * carritos/convertidos/conversion (RF22): carritos iniciados por clientes en el periodo y cuántos terminaron en reserva.
+     */
     public record KpisDto(Long pedidos, BigDecimal ventas, Long pedidosValidos, Long pendientes, Long clientes,
-                          Long agotados, Long stockBajo, double ticketPromedio) {}
+                          Long agotados, Long stockBajo, double ticketPromedio,
+                          BigDecimal costo, BigDecimal ganancia, double margen, BigDecimal ventasSinCosto,
+                          Long carritos, Long carritosConvertidos, double conversion) {}
 
     public record VentaDiaDto(String dia, Long pedidos, BigDecimal monto) {}
 
@@ -103,9 +110,10 @@ public final class Respuestas {
 
     public record PedidoReporteDto(Integer idPedido, String codigoPedido, String fechaHoraToma, String estadoPedido,
                                    String metodoPago, BigDecimal subtotalGeneral, BigDecimal igv, BigDecimal total,
-                                   String nombreCliente) {}
+                                   String nombreCliente, BigDecimal costo, BigDecimal ganancia) {}
 
-    public record TotalesReporteDto(int cantidad, BigDecimal monto, BigDecimal igv, long entregados, long cancelados) {}
+    public record TotalesReporteDto(int cantidad, BigDecimal monto, BigDecimal igv, long entregados, long cancelados,
+                                    BigDecimal costo, BigDecimal ganancia) {}
 
     public record ReporteDto(String desde, String hasta, List<PedidoReporteDto> pedidos, TotalesReporteDto totales) {}
 }

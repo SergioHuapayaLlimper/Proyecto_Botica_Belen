@@ -31,7 +31,9 @@ export class Productos {
   protected readonly stockEditado = signal<Record<number, number>>({});
 
   protected q = '';
-  protected categoria = '';
+  // Filtros que pueden venir en la URL (enlaces desde Categorías y desde el Resumen).
+  private readonly parametros = inject(ActivatedRoute).snapshot.queryParamMap;
+  protected categoria = this.parametros.get('categoria') ?? '';
   protected stock: string = inject(ActivatedRoute).snapshot.queryParamMap.get('stock') ?? '';
   protected orden = 'nombre_asc';
   protected estado = '';

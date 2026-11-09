@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -15,11 +14,13 @@ import pe.upn.boticabelen.dto.Respuestas.*;
 import pe.upn.boticabelen.dto.Solicitudes.EstadoRequest;
 import pe.upn.boticabelen.dto.Solicitudes.ItemRequest;
 import pe.upn.boticabelen.dto.Solicitudes.PedidoRequest;
+import pe.upn.boticabelen.entity.CarritoSesion;
 import pe.upn.boticabelen.entity.DetallePedido;
 import pe.upn.boticabelen.entity.Pedido;
 import pe.upn.boticabelen.entity.Producto;
 import pe.upn.boticabelen.entity.Usuario;
 import pe.upn.boticabelen.excepcion.ApiException;
+import pe.upn.boticabelen.repository.CarritoSesionRepository;
 import pe.upn.boticabelen.repository.PedidoConsultaRepository;
 import pe.upn.boticabelen.repository.PedidoRepository;
 import pe.upn.boticabelen.repository.ProductoRepository;
@@ -33,20 +34,22 @@ import pe.upn.boticabelen.util.Validador;
 @Service
 public class PedidoService {
 
-    private static final DateTimeFormatter CODIGO = DateTimeFormatter.ofPattern("yyMMdd-HHmmss");
     private static final DateTimeFormatter NOTA = DateTimeFormatter.ofPattern("d/M/yyyy, HH:mm:ss");
 
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
     private final UsuarioRepository usuarioRepository;
     private final PedidoConsultaRepository consultas;
+    private final CarritoSesionRepository carritoSesionRepository;
 
     public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository,
-                         UsuarioRepository usuarioRepository, PedidoConsultaRepository consultas) {
+                         UsuarioRepository usuarioRepository, PedidoConsultaRepository consultas,
+                         CarritoSesionRepository carritoSesionRepository) {
         this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
         this.usuarioRepository = usuarioRepository;
         this.consultas = consultas;
+        this.carritoSesionRepository = carritoSesionRepository;
     }
 
     /**
@@ -94,6 +97,7 @@ public class PedidoService {
             d.setCantidad(item.cantidad());
             d.setPrecioUnitario(p.getPrecioProducto());
             d.setSubtotal(subtotal);
+            d.setCostoUnitario(p.getCostoProducto()); // RF21: costo congelado al momento de la venta
             pedido.agregarDetalle(d);
 
             p.setStock(p.getStock() - item.cantidad()); // se aparta el stock
@@ -101,7 +105,7 @@ public class PedidoService {
 
         Negocio.Montos montos = Negocio.desgloseIgv(total);
         Usuario cliente = usuarioRepository.findById(idUsuario).orElseThrow(() -> ApiException.notFound("Usuario no encontrado."));
-        pedido.setCodigoPedido("BB-" + LocalDateTime.now().format(CODIGO) + "-" + ThreadLocalRandom.current().nextInt(100, 1000));
+        pedido.setCodigoPedido(siguienteCodigo());
         pedido.setUsuario(cliente);
         pedido.setEstadoPedido(Negocio.PENDIENTE);
         pedido.setMetodoPago(metodoPago);
@@ -112,7 +116,19 @@ public class PedidoService {
         pedidoRepository.save(pedido);
 
         cliente.setCarritoJson(null); // el carrito se vacía al reservar
+
+        // RF22: el carrito abierto del cliente queda "convertido" en esta reserva.
+        CarritoSesion carrito = carritoSesionRepository.findFirstByIdUsuarioAndIdPedidoIsNullAndCerradoEnIsNullOrderByIdCarritoDesc(idUsuario)
+                .orElseGet(() -> carritoSesionRepository.save(new CarritoSesion(idUsuario)));
+        carrito.setIdPedido(pedido.getIdPedido());
         return new PedidoCreadoDto(pedido.getIdPedido(), pedido.getCodigoPedido(), montos.subtotalGeneral(), montos.igv(), montos.total());
+    }
+
+    /** Código correlativo por año: PED-2026-0001, PED-2026-0002... (se reinicia cada año). */
+    private String siguienteCodigo() {
+        String anio = String.valueOf(LocalDateTime.now().getYear());
+        Number ultimo = pedidoRepository.ultimoCorrelativo(anio);
+        return "PED-" + anio + "-" + String.format("%04d", (ultimo == null ? 0 : ultimo.longValue()) + 1);
     }
 
     @Transactional(readOnly = true)
@@ -148,6 +164,25 @@ public class PedidoService {
         return releer(idPedido);
     }
 
+    /**
+     * Reservas abandonadas: las que siguen sin cerrar después de {@code horas} desde que se hicieron se cancelan,
+     * el stock apartado vuelve al inventario y el cliente lo ve como aviso en su próxima consulta.
+     */
+    @Transactional
+    public int vencerReservas(int horas) {
+        List<String> abiertos = List.of(Negocio.PENDIENTE, Negocio.ACEPTADO, Negocio.EN_PREPARACION, Negocio.LISTO);
+        List<Integer> ids = pedidoRepository.abiertasAntesDe(abiertos, LocalDateTime.now().minusHours(horas));
+        int vencidas = 0;
+        for (Integer id : ids) {
+            Pedido pedido = pedidoRepository.bloquearPorId(id).orElse(null);
+            if (pedido == null || !abiertos.contains(pedido.getEstadoPedido())) continue; // alguien lo atendió justo ahora
+            cambiarEstado(pedido, Negocio.CANCELADO,
+                    "Venció: no se recogió en " + horas + (horas == 1 ? " hora" : " horas") + ". Las unidades volvieron al stock.");
+            vencidas++;
+        }
+        return vencidas;
+    }
+
     // ------------------------------- Gestión -------------------------------
 
     @Transactional(readOnly = true)
@@ -179,10 +214,42 @@ public class PedidoService {
         return releer(idPedido);
     }
 
+    /**
+     * Checklist del mostrador: marca (o desmarca) un producto del pedido como separado del anaquel.
+     * Solo en pedidos aceptados o en preparación. Marcar el primero de un pedido aceptado
+     * lo pasa a "En preparación" (ya se empezó a preparar).
+     */
+    @Transactional
+    public PedidoDetalleDto marcarPreparado(String id, String idDetalle, Boolean preparado) {
+        int idPedido = Parametros.entero(id, 0);
+        Pedido pedido = pedidoRepository.bloquearPorId(idPedido).orElseThrow(() -> ApiException.notFound("Pedido no encontrado."));
+        String estado = pedido.getEstadoPedido();
+        if (!Negocio.ACEPTADO.equals(estado) && !Negocio.EN_PREPARACION.equals(estado)) {
+            throw ApiException.conflict("Solo se marcan productos de pedidos aceptados o en preparación.");
+        }
+        int idLinea = Parametros.entero(idDetalle, 0);
+        DetallePedido linea = pedido.getDetalles().stream()
+                .filter(d -> d.getIdDetallePedido() == idLinea)
+                .findFirst()
+                .orElseThrow(() -> ApiException.notFound("El producto no pertenece a este pedido."));
+        boolean marcar = Boolean.TRUE.equals(preparado);
+        linea.setPreparado(marcar);
+        if (marcar && Negocio.ACEPTADO.equals(estado)) pedido.setEstadoPedido(Negocio.EN_PREPARACION);
+        return releer(idPedido);
+    }
+
     /** Valida la transición. Si se cancela o rechaza, el stock apartado vuelve al inventario. */
     private void cambiarEstado(Pedido pedido, String nuevo, String motivo) {
         if (!Negocio.siguientesEstados(pedido.getEstadoPedido()).contains(nuevo)) {
             throw ApiException.conflict("No se puede pasar de \"" + pedido.getEstadoPedido() + "\" a \"" + nuevo + "\".");
+        }
+        // Checklist completa: no se marca como listo un pedido con productos sin separar.
+        if (Negocio.LISTO.equals(nuevo)) {
+            long faltan = pedido.getDetalles().stream().filter(d -> !Boolean.TRUE.equals(d.getPreparado())).count();
+            if (faltan > 0) {
+                throw ApiException.conflict("Falta" + (faltan == 1 ? " 1 producto" : "n " + faltan + " productos")
+                        + " por marcar como preparado" + (faltan == 1 ? "" : "s") + " en «Qué preparar ahora».");
+            }
         }
         if (Negocio.anulado(nuevo)) {
             for (DetallePedido d : pedido.getDetalles()) {

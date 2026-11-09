@@ -28,7 +28,7 @@ import { GestionService } from '../gestion.service';
         </label>
         <label class="casilla">
           <span class="rotulo">Estado</span>
-          <select name="estado" [(ngModel)]="estado" (change)="cargar()">
+          <select name="estado" [ngModel]="estado" (ngModelChange)="estado = $event; cargar()">
             <option value="">Todos</option>
             <option value="activos">En curso (sin cerrar)</option>
             @for (e of estados; track e) {

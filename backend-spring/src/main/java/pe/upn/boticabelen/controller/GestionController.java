@@ -54,6 +54,12 @@ public class GestionController {
     }
 
     @Requiere(Permisos.PEDIDOS_ESTADO)
+    @PatchMapping("/pedidos/{id}/detalles/{idDetalle}")
+    public PedidoDetalleDto marcarPreparado(@PathVariable String id, @PathVariable String idDetalle, @RequestBody PreparadoRequest req) {
+        return pedidoService.marcarPreparado(id, idDetalle, req.preparado());
+    }
+
+    @Requiere(Permisos.PEDIDOS_ESTADO)
     @PatchMapping("/pedidos/{id}/estado")
     public PedidoDetalleDto cambiarEstado(@PathVariable String id, @RequestBody EstadoRequest req, @UsuarioActual Usuario usuario) {
         return pedidoService.cambiarEstadoPorEmpleado(id, req, usuario);

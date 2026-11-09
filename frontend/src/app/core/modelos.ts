@@ -63,6 +63,7 @@ export interface Producto {
   principioActivo?: string | null; // RF05
   descripcionProducto: string | null;
   precioProducto: number;
+  costoProducto?: number | null; // RF21 (solo en el panel)
   stock: number;
   imagenURL: string | null;
   estadoProducto?: 'Activo' | 'Inactivo';
@@ -119,6 +120,7 @@ export interface DetallePedido {
   cantidad: number;
   precioUnitario: number;
   subtotal: number;
+  preparado?: boolean; // checklist del mostrador
 }
 
 export interface Pedido extends PedidoResumen {
@@ -139,11 +141,13 @@ export interface LineaPreparar {
   estadoPedido: EstadoPedido;
   fechaHoraToma: string;
   nombreCliente: string;
+  idDetallePedido: number;
   idProducto: number;
   codigoProducto: string;
   nombreProducto: string;
   ubicacionAnaquel: string | null;
   cantidad: number;
+  preparado: boolean;
 }
 
 export interface Empleado {
@@ -172,6 +176,15 @@ export interface Dashboard {
     agotados: number;
     stockBajo: number;
     ticketPromedio: number;
+    // RF21: ganancia bruta sobre las ventas de productos con costo registrado
+    costo: number;
+    ganancia: number;
+    margen: number; // %
+    ventasSinCosto: number;
+    // RF22: carritos iniciados por clientes y cuántos terminaron en reserva
+    carritos: number;
+    carritosConvertidos: number;
+    conversion: number; // %
   };
   ventasPorDia: { dia: string; pedidos: number; monto: number }[];
   porEstado: { estado: EstadoPedido; total: number }[];
@@ -184,8 +197,8 @@ export interface Dashboard {
 export interface Reporte {
   desde: string;
   hasta: string;
-  pedidos: (PedidoResumen & { subtotalGeneral: number; igv: number })[];
-  totales: { cantidad: number; monto: number; igv: number; entregados: number; cancelados: number };
+  pedidos: (PedidoResumen & { subtotalGeneral: number; igv: number; costo: number | null; ganancia: number | null })[];
+  totales: { cantidad: number; monto: number; igv: number; entregados: number; cancelados: number; costo: number; ganancia: number };
 }
 
 // Datos de la tienda. EJEMPLO: reemplazar por los datos reales de la botica.

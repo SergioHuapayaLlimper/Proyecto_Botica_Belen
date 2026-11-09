@@ -51,6 +51,11 @@ import { Mapa } from '../../ui/mapa';
           <div class="campos">
             <label class="casilla ancho"><span class="rotulo">Horario de atención</span><textarea name="horario" [(ngModel)]="f.horario_atencion" maxlength="300"></textarea></label>
             <label class="casilla">
+              <span class="rotulo">Plazo para recoger (horas)</span>
+              <input name="vencimiento" type="number" min="0" max="720" step="1" class="cifra" [(ngModel)]="f.horas_vencimiento" />
+              <span class="ayuda-campo">Pasado este plazo, la reserva se cancela sola y su stock se libera. 0 = no vencen.</span>
+            </label>
+            <label class="casilla">
               <span class="rotulo">Número de Yape</span>
               <input name="yape" type="tel" [(ngModel)]="f.yape_numero" maxlength="20" />
               <span class="ayuda-campo">La botica acepta efectivo o Yape al recoger.</span>

@@ -37,13 +37,29 @@ public class DashboardConsultaRepository {
                 + " (SELECT COUNT(*) FROM pedido WHERE estadoPedido = 'Pendiente') AS pendientes,"
                 + " (SELECT COUNT(*) FROM usuario WHERE tipo = 'Cliente') AS clientes,"
                 + " (SELECT COUNT(*) FROM producto WHERE estadoProducto = 'Activo' AND stock = 0) AS agotados,"
-                + " (SELECT COUNT(*) FROM producto WHERE estadoProducto = 'Activo' AND stock BETWEEN 1 AND " + Negocio.STOCK_BAJO + ") AS stockBajo";
+                + " (SELECT COUNT(*) FROM producto WHERE estadoProducto = 'Activo' AND stock BETWEEN 1 AND " + Negocio.STOCK_BAJO + ") AS stockBajo,"
+                // RF21: ventas y costo de las líneas con costo registrado (pedidos válidos del periodo)
+                + " (SELECT COALESCE(SUM(d.subtotal), 0) FROM detalle_pedido d JOIN pedido p ON p.idPedido = d.idPedido"
+                + "   WHERE DATE(p.fechaHoraToma) BETWEEN :desde AND :hasta AND p." + VALIDA + " AND d.costoUnitario IS NOT NULL) AS ventasConCosto,"
+                + " (SELECT COALESCE(SUM(d.costoUnitario * d.cantidad), 0) FROM detalle_pedido d JOIN pedido p ON p.idPedido = d.idPedido"
+                + "   WHERE DATE(p.fechaHoraToma) BETWEEN :desde AND :hasta AND p." + VALIDA + " AND d.costoUnitario IS NOT NULL) AS costo,"
+                // RF22: carritos iniciados y convertidos en reserva
+                + " (SELECT COUNT(*) FROM carrito_sesion WHERE DATE(iniciadoEn) BETWEEN :desde AND :hasta) AS carritos,"
+                + " (SELECT COUNT(*) FROM carrito_sesion WHERE DATE(iniciadoEn) BETWEEN :desde AND :hasta AND idPedido IS NOT NULL) AS convertidos";
         var t = sql.uno(consulta, rango(r)).orElseThrow();
         BigDecimal ventas = decimal(t, "ventas");
         long validos = largo(t, "pedidosValidos");
         double ticket = validos > 0 ? ventas.divide(BigDecimal.valueOf(validos), 6, RoundingMode.HALF_UP).doubleValue() : 0;
+        BigDecimal conCosto = decimal(t, "ventasConCosto");
+        BigDecimal costo = decimal(t, "costo").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal ganancia = conCosto.subtract(costo).setScale(2, RoundingMode.HALF_UP);
+        double margen = conCosto.signum() > 0 ? ganancia.multiply(BigDecimal.valueOf(100)).divide(conCosto, 2, RoundingMode.HALF_UP).doubleValue() : 0;
+        long carritos = largo(t, "carritos");
+        long convertidos = largo(t, "convertidos");
+        double conversion = carritos > 0 ? Math.round(convertidos * 1000.0 / carritos) / 10.0 : 0;
         return new KpisDto(largo(t, "pedidos"), ventas, validos, largo(t, "pendientes"), largo(t, "clientes"),
-                largo(t, "agotados"), largo(t, "stockBajo"), ticket);
+                largo(t, "agotados"), largo(t, "stockBajo"), ticket,
+                costo, ganancia, margen, ventas.subtract(conCosto).max(BigDecimal.ZERO), carritos, convertidos, conversion);
     }
 
     public List<VentaDiaDto> ventasPorDia(Negocio.Rango r) {
@@ -102,12 +118,15 @@ public class DashboardConsultaRepository {
             params.put("producto", idProducto);
         }
         return sql.lista("SELECT p.idPedido, p.codigoPedido, " + PedidoConsultaRepository.FECHA + " AS fechaHoraToma,"
-                        + " p.estadoPedido, p.metodoPago, p.subtotalGeneral, p.igv, p.total, u.nombre AS nombreCliente"
+                        + " p.estadoPedido, p.metodoPago, p.subtotalGeneral, p.igv, p.total, u.nombre AS nombreCliente,"
+                        + " (SELECT SUM(d.costoUnitario * d.cantidad) FROM detalle_pedido d WHERE d.idPedido = p.idPedido) AS costo"
                         + " FROM pedido p LEFT JOIN usuario u ON u.idUsuario = p.idUsuario"
                         + " WHERE " + String.join(" AND ", where) + " ORDER BY p.fechaHoraToma DESC", params)
                 .stream().map(t -> new PedidoReporteDto(entero(t, "idPedido"), texto(t, "codigoPedido"),
                         texto(t, "fechaHoraToma"), texto(t, "estadoPedido"), texto(t, "metodoPago"),
-                        decimal(t, "subtotalGeneral"), decimal(t, "igv"), decimal(t, "total"), texto(t, "nombreCliente")))
+                        decimal(t, "subtotalGeneral"), decimal(t, "igv"), decimal(t, "total"), texto(t, "nombreCliente"),
+                        t.get("costo") == null ? null : decimal(t, "costo").setScale(2, RoundingMode.HALF_UP),
+                        t.get("costo") == null ? null : decimal(t, "total").subtract(decimal(t, "costo")).setScale(2, RoundingMode.HALF_UP)))
                 .toList();
     }
 }

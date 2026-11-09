@@ -35,8 +35,12 @@ public class DashboardService {
         BigDecimal igv = validos.stream().map(PedidoReporteDto::igv).reduce(BigDecimal.ZERO, BigDecimal::add);
         long entregados = pedidos.stream().filter(p -> Negocio.ENTREGADO.equals(p.estadoPedido())).count();
         long anulados = pedidos.size() - validos.size();
+        // RF21: costo y ganancia de los pedidos válidos con costo registrado
+        BigDecimal costo = validos.stream().map(PedidoReporteDto::costo).filter(java.util.Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal ganancia = validos.stream().map(PedidoReporteDto::ganancia).filter(java.util.Objects::nonNull).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new ReporteDto(r.desde(), r.hasta(), pedidos,
-                new TotalesReporteDto(pedidos.size(), Negocio.redondear(monto), Negocio.redondear(igv), entregados, anulados));
+                new TotalesReporteDto(pedidos.size(), Negocio.redondear(monto), Negocio.redondear(igv), entregados, anulados,
+                        Negocio.redondear(costo), Negocio.redondear(ganancia)));
     }
 }

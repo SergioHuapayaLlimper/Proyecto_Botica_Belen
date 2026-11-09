@@ -57,7 +57,8 @@ public class ProductoConsultaRepository {
     private static ProductoDto aProducto(Tuple t) {
         return new ProductoDto(entero(t, "idProducto"), entero(t, "idCategoria"), texto(t, "nombreCategoria"),
                 texto(t, "codigoProducto"), texto(t, "nombreProducto"), texto(t, "principioActivo"), texto(t, "descripcionProducto"),
-                decimal(t, "precioProducto"), entero(t, "stock"), texto(t, "estadoProducto"),
+                decimal(t, "precioProducto"), t.get("costoProducto") == null ? null : decimal(t, "costoProducto"),
+                entero(t, "stock"), texto(t, "estadoProducto"),
                 bandera(t, "requiere_receta"), texto(t, "imagenURL"), texto(t, "ubicacionAnaquel"));
     }
 }

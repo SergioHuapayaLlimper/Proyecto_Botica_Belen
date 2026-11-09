@@ -8,6 +8,9 @@ import { Barra, BarrasH, BarrasV } from '../../ui/barras';
 import { Icono } from '../../ui/icono';
 import { Sello } from '../../ui/sello';
 import { GestionService } from '../gestion.service';
+import { resumenPdf } from '../../core/exportar';
+import { NegocioService } from '../../core/negocio.service';
+import { AvisosService } from '../../core/avisos.service';
 
 const hoy = () => new Date().toLocaleDateString('en-CA');
 const COLOR_ESTADO: Record<EstadoPedido, string> = {
@@ -31,6 +34,23 @@ type Rango = 'mes' | '30' | 'anio' | 'libre';
 })
 export class Resumen {
   private readonly gestion = inject(GestionService);
+  private readonly negocio = inject(NegocioService);
+  private readonly avisos = inject(AvisosService);
+  protected readonly exportando = signal(false);
+
+  // PDF con las mismas cifras y gráficos que se ven en pantalla (dibujados, no capturados).
+  protected async descargarPdf(): Promise<void> {
+    const d = this.datos();
+    if (!d) return;
+    this.exportando.set(true);
+    try {
+      await resumenPdf(d, this.negocio.datos(), this.meses().map((m) => ({ etiqueta: m.etiqueta, valor: m.valor })));
+    } catch {
+      this.avisos.error('No se pudo generar el PDF. Inténtalo de nuevo.');
+    } finally {
+      this.exportando.set(false);
+    }
+  }
 
   protected readonly rango = signal<Rango>('anio');
   protected desde = `${new Date().getFullYear()}-01-01`;

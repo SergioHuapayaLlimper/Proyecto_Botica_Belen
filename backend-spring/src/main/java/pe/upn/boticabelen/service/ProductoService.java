@@ -39,7 +39,7 @@ public class ProductoService {
     public static ProductoDto aDto(Producto p) {
         Categoria c = p.getCategoria();
         return new ProductoDto(p.getIdProducto(), c == null ? null : c.getIdCategoria(), c == null ? null : c.getNombreCategoria(),
-                p.getCodigoProducto(), p.getNombreProducto(), p.getPrincipioActivo(), p.getDescripcionProducto(), p.getPrecioProducto(), p.getStock(),
+                p.getCodigoProducto(), p.getNombreProducto(), p.getPrincipioActivo(), p.getDescripcionProducto(), p.getPrecioProducto(), p.getCostoProducto(), p.getStock(),
                 p.getEstadoProducto(), Boolean.TRUE.equals(p.getRequiereReceta()) ? 1 : 0, p.getImagenURL(), p.getUbicacionAnaquel());
     }
 
@@ -119,6 +119,12 @@ public class ProductoService {
         p.setDescripcionProducto(Validador.opcional(req.descripcionProducto(), "Descripción", 2000));
         p.setCategoria(categoria);
         p.setPrecioProducto(precio.setScale(2, RoundingMode.HALF_UP));
+        // RF21: costo de compra opcional (sin él, el producto no entra en el cálculo de ganancia)
+        BigDecimal costo = req.costoProducto();
+        if (costo != null && (costo.signum() < 0 || costo.compareTo(PRECIO_MAXIMO) >= 0)) {
+            throw ApiException.badRequest("El costo de compra debe ser 0 o mayor.");
+        }
+        p.setCostoProducto(costo == null ? null : costo.setScale(2, RoundingMode.HALF_UP));
         p.setEstadoProducto("Inactivo".equals(req.estadoProducto()) ? "Inactivo" : "Activo");
         p.setRequiereReceta(Boolean.TRUE.equals(req.requiere_receta()));
         p.setImagenURL(imagen);

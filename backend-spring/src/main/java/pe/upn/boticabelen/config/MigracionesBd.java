@@ -266,6 +266,80 @@ public class MigracionesBd implements ApplicationRunner {
                 bd.update("UPDATE pedido SET metodoPago = 'Yape' WHERE metodoPago = 'Plin'");
                 bd.update("UPDATE pedido SET metodoPago = 'Efectivo' WHERE metodoPago = 'Tarjeta'");
                 bd.update("UPDATE configuracion_negocio SET valor = 'Efectivo o Yape' WHERE clave = 'metodos_pago'");
+            }),
+
+            new Migracion("008_codigos_de_pedido", "Códigos de pedido con formato PED-AAAA-NNNN", bd -> {
+                // Los pedidos con otro formato (BB-261109-023111-493) reciben el siguiente correlativo de su año,
+                // en el orden en que se hicieron.
+                Map<String, Integer> ultimo = new HashMap<>();
+                for (var fila : bd.queryForList("""
+                        SELECT CAST(YEAR(fechaHoraToma) AS CHAR) AS anio, MAX(CAST(SUBSTRING(codigoPedido, 10) AS UNSIGNED)) AS n
+                        FROM pedido WHERE codigoPedido REGEXP '^PED-[0-9]{4}-[0-9]+$' GROUP BY YEAR(fechaHoraToma)""")) {
+                    ultimo.put(String.valueOf(fila.get("anio")), ((Number) fila.get("n")).intValue());
+                }
+                for (var fila : bd.queryForList("""
+                        SELECT idPedido, CAST(YEAR(fechaHoraToma) AS CHAR) AS anio FROM pedido
+                        WHERE codigoPedido NOT REGEXP '^PED-[0-9]{4}-[0-9]+$'
+                        ORDER BY fechaHoraToma, idPedido""")) {
+                    String anio = String.valueOf(fila.get("anio"));
+                    int n = ultimo.merge(anio, 1, Integer::sum);
+                    bd.update("UPDATE pedido SET codigoPedido = ? WHERE idPedido = ?",
+                            "PED-" + anio + "-" + String.format("%04d", n), fila.get("idPedido"));
+                }
+            }),
+
+            new Migracion("009_checklist_preparacion", "Checklist del mostrador guardada por producto del pedido", bd -> {
+                if (!existeColumna("detalle_pedido", "preparado")) {
+                    bd.execute("ALTER TABLE detalle_pedido ADD COLUMN preparado TINYINT(1) NOT NULL DEFAULT 0");
+                }
+                // Los pedidos que ya estaban listos o entregados tuvieron sus productos separados.
+                bd.update("""
+                        UPDATE detalle_pedido d JOIN pedido p ON p.idPedido = d.idPedido
+                        SET d.preparado = 1 WHERE p.estadoPedido IN ('Listo para entregar', 'Entregado')""");
+            }),
+
+            new Migracion("010_ganancias_conversion_vencimiento", "Costo y ganancia (RF21), carritos para la conversión (RF22) y vencimiento de reservas", bd -> {
+                // RF21: costo de compra del producto y costo congelado en cada venta (el histórico no cambia si cambia el costo).
+                if (!existeColumna("producto", "costoProducto")) {
+                    bd.execute("ALTER TABLE producto ADD COLUMN costoProducto DECIMAL(10,2) NULL AFTER precioProducto");
+                    // Datos de prueba: costo aproximado del 70 % del precio de venta.
+                    bd.update("UPDATE producto SET costoProducto = ROUND(precioProducto * 0.70, 2)");
+                }
+                if (!existeColumna("detalle_pedido", "costoUnitario")) {
+                    bd.execute("ALTER TABLE detalle_pedido ADD COLUMN costoUnitario DECIMAL(10,2) NULL AFTER precioUnitario");
+                    bd.update("""
+                            UPDATE detalle_pedido d JOIN producto p ON p.idProducto = d.idProducto
+                            SET d.costoUnitario = p.costoProducto""");
+                }
+                // RF22: cada carrito que un cliente empieza y, si terminó en reserva, el pedido.
+                bd.execute("""
+                        CREATE TABLE IF NOT EXISTS carrito_sesion (
+                          idCarrito INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                          idUsuario INT NOT NULL,
+                          iniciadoEn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          idPedido INT NULL,
+                          cerradoEn DATETIME NULL,
+                          CONSTRAINT fk_carrito_usuario FOREIGN KEY (idUsuario) REFERENCES usuario (idUsuario) ON DELETE CASCADE,
+                          CONSTRAINT fk_carrito_pedido FOREIGN KEY (idPedido) REFERENCES pedido (idPedido) ON DELETE SET NULL,
+                          KEY ix_carrito_iniciado (iniciadoEn)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci""");
+                // Vencimiento de reservas no recogidas (horas), editable en "Información del negocio".
+                bd.update("INSERT IGNORE INTO configuracion_negocio (clave, valor) VALUES ('horas_vencimiento', '24')");
+            }),
+
+            new Migracion("011_renumerar_codigos_pedido", "Corrige códigos PED-AAAA-01-01-NNNN y deja el correlativo en orden de fecha", bd -> {
+                // MySQL devuelve YEAR() como fecha (2026-01-01): la 008 generó códigos como PED-2026-01-01-0001.
+                // Se renumeran todos los pedidos de cada año según el orden en que se hicieron.
+                bd.update("UPDATE pedido SET codigoPedido = CONCAT('TMP-', idPedido)"); // evita choques con el UNIQUE
+                Map<String, Integer> correlativo = new HashMap<>();
+                for (var fila : bd.queryForList("""
+                        SELECT idPedido, CAST(YEAR(fechaHoraToma) AS CHAR) AS anio FROM pedido
+                        ORDER BY fechaHoraToma, idPedido""")) {
+                    String anio = String.valueOf(fila.get("anio"));
+                    int n = correlativo.merge(anio, 1, Integer::sum);
+                    bd.update("UPDATE pedido SET codigoPedido = ? WHERE idPedido = ?",
+                            "PED-" + anio + "-" + String.format("%04d", n), fila.get("idPedido"));
+                }
             })
     );
 

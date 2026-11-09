@@ -16,6 +16,7 @@ export interface DatosNegocio {
   whatsapp_numero: string;
   whatsapp_mensaje: string;
   yape_numero: string;
+  horas_vencimiento: string; // horas para recoger una reserva antes de que venza (0 = no vence)
 }
 
 // Valores mientras llega la respuesta de la API (o si no hay conexión).
@@ -32,6 +33,7 @@ const INICIAL: DatosNegocio = {
   whatsapp_numero: '',
   whatsapp_mensaje: '',
   yape_numero: '',
+  horas_vencimiento: '24',
 };
 
 /** Información del negocio que edita el admin (tabla configuracion_negocio). La usa todo el portal. */
@@ -60,6 +62,12 @@ export class NegocioService {
     const { whatsapp_numero, whatsapp_mensaje } = this.datos();
     if (!whatsapp_numero) return null;
     return `https://wa.me/${whatsapp_numero}${whatsapp_mensaje ? '?text=' + encodeURIComponent(whatsapp_mensaje) : ''}`;
+  });
+
+  /** Horas para recoger una reserva (0 = no vence). */
+  readonly horasVencimiento = computed(() => {
+    const n = Number(this.datos().horas_vencimiento);
+    return Number.isFinite(n) && n > 0 ? n : 0;
   });
 
   constructor() {

@@ -107,10 +107,10 @@
             <li>
               <h3 class="estante">{{ g.estante }}</h3>
               <ul>
-                @for (l of g.lineas; track clave(l)) {
+                @for (l of g.lineas; track l.idDetallePedido) {
                   <li>
-                    <label class="recoger" [class.hecho]="recogidos().has(clave(l))">
-                      <input type="checkbox" [checked]="recogidos().has(clave(l))" (change)="alternarRecogido(l)" />
+                    <label class="recoger" [class.hecho]="l.preparado">
+                      <input type="checkbox" [checked]="l.preparado" [disabled]="!puedeActuar() || marcando() === l.idDetallePedido" (change)="alternarRecogido(l)" />
                       <span class="marca-check" aria-hidden="true"><app-icono nombre="check" [tam]="14" [trazo]="2.5" /></span>
                       <span class="cuanto cifra">{{ l.cantidad }} ×</span>
                       <span class="que">
@@ -154,9 +154,15 @@
               </div>
               <app-sello [estado]="p.estadoPedido" />
               @if (puedeActuar() && siguiente(p); as sig) {
-                <button type="button" class="btn btn--chico" [class.btn--tinta]="sig !== 'Entregado'" [disabled]="ocupado() === p.idPedido" (click)="avanzar(p, sig)">
-                  {{ accion[sig] }}
-                </button>
+                @if (sig === 'Listo para entregar' && faltanDe(p) > 0) {
+                  <span class="falta" [title]="'Marca sus productos en «Qué preparar ahora»'">
+                    Faltan {{ faltanDe(p) }} por separar
+                  </span>
+                } @else {
+                  <button type="button" class="btn btn--chico" [class.btn--tinta]="sig !== 'Entregado'" [disabled]="ocupado() === p.idPedido" (click)="avanzar(p, sig)">
+                    {{ accion[sig] }}
+                  </button>
+                }
               }
             </li>
           }

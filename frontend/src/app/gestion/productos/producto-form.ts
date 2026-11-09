@@ -16,6 +16,7 @@ interface Formulario {
   principioActivo: string;
   idCategoria: number;
   precioProducto: number | null;
+  costoProducto: number | null;
   stock: number;
   ubicacionAnaquel: string;
   estadoProducto: 'Activo' | 'Inactivo';
@@ -61,6 +62,11 @@ interface Formulario {
               </select>
             </label>
             <label class="casilla"><span class="rotulo">Precio con IGV (S/)</span><input name="precio" type="number" step="0.01" min="0.01" [(ngModel)]="f.precioProducto" required /></label>
+            <label class="casilla">
+              <span class="rotulo">Costo de compra (S/, opcional)</span>
+              <input name="costo" type="number" step="0.01" min="0" [(ngModel)]="f.costoProducto" />
+              <span class="ayuda-campo">{{ ayudaMargen() }}</span>
+            </label>
             @if (!id()) {
               <label class="casilla"><span class="rotulo">Stock inicial</span><input name="stock" type="number" min="0" step="1" [(ngModel)]="f.stock" /></label>
             }
@@ -132,6 +138,15 @@ export class ProductoForm implements OnInit {
   private categoriaOriginal: number | null = null;
   protected readonly codigoNuevo = signal('');
 
+  // RF21: margen que deja el producto con el precio y costo escritos.
+  protected ayudaMargen(): string {
+    const precio = Number(this.f.precioProducto);
+    const costo = this.f.costoProducto === null || (this.f.costoProducto as unknown) === '' ? NaN : Number(this.f.costoProducto);
+    if (!(precio > 0) || Number.isNaN(costo)) return 'Sirve para calcular la ganancia en el Resumen.';
+    const ganancia = precio - costo;
+    return `Gana S/ ${ganancia.toFixed(2)} por unidad (margen de ${((ganancia / precio) * 100).toFixed(1)} %).`;
+  }
+
   protected codigoMostrado(): string {
     if (this.id() && this.f.idCategoria === this.categoriaOriginal) return this.codigoOriginal;
     return this.codigoNuevo() || '…';
@@ -155,6 +170,7 @@ export class ProductoForm implements OnInit {
     principioActivo: '',
     idCategoria: 1,
     precioProducto: null,
+    costoProducto: null,
     stock: 0,
     ubicacionAnaquel: '',
     estadoProducto: 'Activo',
@@ -178,6 +194,7 @@ export class ProductoForm implements OnInit {
           principioActivo: p.principioActivo ?? '',
           idCategoria: p.idCategoria,
           precioProducto: p.precioProducto,
+          costoProducto: p.costoProducto ?? null,
           stock: p.stock,
           ubicacionAnaquel: p.ubicacionAnaquel ?? '',
           estadoProducto: p.estadoProducto ?? 'Activo',
@@ -204,7 +221,8 @@ export class ProductoForm implements OnInit {
     }
     this.guardando.set(true);
     const id = this.id() ? Number(this.id()) : undefined;
-    const datos = { ...this.f, precioProducto: Number(this.f.precioProducto), requiere_receta: this.f.requiere_receta ? 1 : 0 };
+    const costo = this.f.costoProducto === null || (this.f.costoProducto as unknown) === '' ? null : Number(this.f.costoProducto);
+    const datos = { ...this.f, precioProducto: Number(this.f.precioProducto), costoProducto: costo, requiere_receta: this.f.requiere_receta ? 1 : 0 };
     this.gestion.guardarProducto(datos, id).subscribe({
       next: (p) => {
         this.avisos.ok(`${p.codigoProducto} ${id ? 'actualizado' : 'creado'} correctamente.`);
